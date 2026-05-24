@@ -1,0 +1,268 @@
+.stat-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+  color: #6366f1;
+  opacity: 0.7;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.gap-2 {
+  gap: 8px;
+}
+
+.nav-tabs .nav-link {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link.active {
+  color: #6366f1;
+  border-bottom: 2px solid #6366f1;
+}
+
+/* Manager Dashboard Dark Mode */
+body.dark-mode .stat-card {
+  background: #1e293b !important;
+  border-color: #374151 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .stat-card:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+body.dark-mode .stat-card h2,
+body.dark-mode .stat-card h3,
+body.dark-mode .stat-card h4,
+body.dark-mode .stat-card h5 {
+  color: #f1f5f9 !important;
+}
+
+body.dark-mode .stat-card h6,
+body.dark-mode .stat-card p,
+body.dark-mode .stat-card small {
+  color: #94a3b8 !important;
+}
+
+body.dark-mode .stat-card .text-success {
+  color: #6ee7b7 !important;
+}
+
+body.dark-mode .nav-tabs {
+  border-color: #374151;
+}
+
+body.dark-mode .nav-tabs .nav-link {
+  color: #e2e8f0 !important;
+  border-color: transparent;
+}
+
+body.dark-mode .nav-tabs .nav-link:hover {
+  color: #f1f5f9 !important;
+  border-color: #475569;
+}
+
+body.dark-mode .nav-tabs .nav-link.active {
+  color: #a5b4fc !important;
+  background-color: #16213e;
+  border-color: #374151;
+  border-bottom-color: #6366f1;
+}
+
+body.dark-mode .tab-content {
+  color: #e2e8f0;
+}
+
+/* Manager Dashboard - Alert overrides */
+body.dark-mode .alert-info {
+  background-color: #1e3a5f !important;
+  color: #93c5fd !important;
+  border-color: #2563eb !important;
+}
+
+body.dark-mode .alert-danger {
+  background-color: #3b1c1c !important;
+  color: #fca5a5 !important;
+  border-color: #dc2626 !important;
+}
+
+body.dark-mode .alert h4 {
+  color: inherit !important;
+}
+
+body.dark-mode .alert p {
+  color: inherit !important;
+}
+
+/* ===== DARK MODE - Add/Edit Event Modal Service Items ===== */
+/* Fix the service category containers with inline background: #fafafa */
+body.dark-mode .modal-body .mb-3.p-2.border.rounded {
+  background: #1e293b !important;
+  border-color: #374151 !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-mode .modal-body .mb-3.p-2.border.rounded .form-control {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: #374151 !important;
+}
+
+body.dark-mode .modal-body .mb-3.p-2.border.rounded .form-control::placeholder {
+  color: #64748b !important;
+}
+
+body.dark-mode .modal-body .mb-3.p-2.border.rounded .form-select {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: #374151 !important;
+}
+
+body.dark-mode .modal-body .d-flex.gap-1.mb-1 .form-control,
+body.dark-mode .modal-body .d-flex.gap-1.mb-1 .form-select {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: #374151 !important;
+}
+
+body.dark-mode .modal-body .d-flex.gap-2.align-items-center .form-control {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: #374151 !important;
+}
+
+/* Fix flat rate addon section */
+body.dark-mode .modal-body .d-flex.gap-2.align-items-center.p-2.border.rounded {
+  background: #1e293b !important;
+  border-color: #374151 !important;
+}
+
+/* Fix service toggle buttons in Add Event modal */
+body.dark-mode .modal-body .btn-outline-secondary {
+  color: #94a3b8 !important;
+  border-color: #475569 !important;
+}
+
+body.dark-mode .modal-body .btn-outline-secondary:hover {
+  background-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-mode .modal-body .btn-outline-primary {
+  color: #818cf8 !important;
+  border-color: #6366f1 !important;
+}
+
+body.dark-mode .modal-body .btn-outline-primary:hover {
+  background-color: #4338ca !important;
+  color: white !important;
+}
+
+body.dark-mode .modal-body .btn-outline-success {
+  color: #6ee7b7 !important;
+  border-color: #059669 !important;
+}
+
+body.dark-mode .modal-body .btn-outline-success:hover {
+  background-color: #064e3b !important;
+  color: #6ee7b7 !important;
+}
+
+body.dark-mode .modal-body .btn-outline-danger {
+  color: #fca5a5 !important;
+  border-color: #dc2626 !important;
+}
+
+body.dark-mode .modal-body .btn-outline-danger:hover {
+  background-color: #450a0a !important;
+  color: #fca5a5 !important;
+}
+
+/* Fix the main Add-on Services container and Flat-Rate Pricing container */
+body.dark-mode .modal-body .mb-3.p-3.border.rounded {
+  background: #16213e !important;
+  border-color: #374151 !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-mode .modal-body .mb-3.p-3.border.rounded h5,
+body.dark-mode .modal-body .mb-3.p-3.border.rounded h6 {
+  color: #f1f5f9 !important;
+}
+
+body.dark-mode .modal-body .mb-3.p-3.border.rounded .text-muted {
+  color: #94a3b8 !important;
+}
+
+body.dark-mode .modal-body .mb-3.p-3.border.rounded .text-center.py-3 p {
+  color: #94a3b8 !important;
+}
+
+/* Fix the service toggle header backgrounds */
+body.dark-mode .modal-body .service-section .d-flex.align-items-center.justify-content-between.p-2.rounded {
+  background: #1e293b !important;
+}
+
+body.dark-mode .modal-body .service-section .d-flex.align-items-center.justify-content-between.p-2.rounded strong {
+  color: #e2e8f0 !important;
+}
+
+/* Fix the enabled service left border */
+body.dark-mode .modal-body .service-section .mt-2.ms-2.ps-2 {
+  border-left-color: #059669 !important;
+}
+
+/* Fix accordion items in the modal */
+body.dark-mode .modal-body .accordion-item {
+  background-color: #1e293b !important;
+  border-color: #374151 !important;
+}
+
+body.dark-mode .modal-body .accordion-button {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-mode .modal-body .accordion-button:not(.collapsed) {
+  background-color: #233554 !important;
+  color: #c7d2fe !important;
+}
+
+body.dark-mode .modal-body .accordion-body {
+  background-color: #16213e !important;
+  color: #e2e8f0 !important;
+}
+
+/* Fix alert-info inside modal */
+body.dark-mode .modal-body .alert-info {
+  background-color: #1e3a5f !important;
+  color: #93c5fd !important;
+  border-color: #2563eb !important;
+}
+
+body.dark-mode .modal-body .alert-light {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #374151 !important;
+}
+
+/* Fix disabled form controls in modal */
+body.dark-mode .modal-body .form-control:disabled,
+body.dark-mode .modal-body .form-control[disabled] {
+  background-color: #0f172a !important;
+  color: #94a3b8 !important;
+  border-color: #2d3748 !important;
+}
