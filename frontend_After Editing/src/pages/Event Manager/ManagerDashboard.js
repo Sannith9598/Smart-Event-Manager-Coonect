@@ -13,6 +13,7 @@ import BookingsTab from "./BookingsTab";
 import AnalyticsTab from "./AnalyticsTab";
 import ManagerToast from './ManagerToast'
 import PastEventsTab from "./PastEventsTab";
+import ReviewsTab from "./ReviewsTab";
 
 export default function ManagerDashboard() {
   const [manager, setManager] = useState(null);
@@ -223,6 +224,10 @@ export default function ManagerDashboard() {
 
               <Tab eventKey="portfolio" title="Past Events">
                 <PastEventsTab showToast={showToast} />
+              </Tab>
+
+              <Tab eventKey="reviews" title="Reviews">
+                <ReviewsTab showToast={showToast} />
               </Tab>
             </Tabs>
           </>

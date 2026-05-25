@@ -68,14 +68,34 @@ export default function EventsTab({
   }, []);
 
   const getCategoryBadge = (category) => {
-    switch (category) {
-      case "birthday":
-        return <span className="badge-pro badge-category-birthday">🎂 Birthday Event</span>;
-      case "wedding":
-        return <span className="badge-pro badge-category-wedding">💒 Wedding Plan</span>;
-      default:
-        return <span className="badge-pro badge-category-general">🎉 General Event</span>;
-    }
+    const categoryLabels = {
+      event: "🎉 General Event",
+      birthday: "🎂 Birthday Event",
+      wedding: "💒 Wedding Plan",
+      anniversary: "✨ Anniversary",
+      corporate: "🏢 Corporate Event",
+      conference: "🎤 Conference",
+      engagement: "💍 Engagement",
+      "baby-shower": "👶 Baby Shower",
+      graduation: "🎓 Graduation",
+      reunion: "👨‍👩‍👧‍👦 Reunion",
+      holiday: "🎄 Holiday Party",
+      fundraiser: "🤝 Fundraiser",
+      concert: "🎵 Concert",
+      sports: "⚽ Sports Event",
+      exhibition: "🖼️ Exhibition",
+      workshop: "📚 Workshop",
+      "product-launch": "🚀 Product Launch",
+      "house-party": "🏠 House Party",
+      "bridal-shower": "👰 Bridal Shower",
+      bachelorette: "🎊 Bachelorette",
+      reception: "💐 Reception",
+      meeting: "📋 Meeting",
+      gala: "🌟 Gala Dinner",
+      festival: "🎪 Festival",
+    };
+    const label = categoryLabels[category] || `🎉 ${category || "General Event"}`;
+    return <span className="badge-pro badge-category-general">{label}</span>;
   };
 
   const deleteEvent = async (id) => {
@@ -171,6 +191,27 @@ export default function EventsTab({
                   <option value="event">General Events</option>
                   <option value="birthday">Birthday Parties</option>
                   <option value="wedding">Wedding Plans</option>
+                  <option value="anniversary">Anniversary Celebration</option>
+                  <option value="corporate">Corporate Event</option>
+                  <option value="conference">Conference / Seminar</option>
+                  <option value="engagement">Engagement Party</option>
+                  <option value="baby-shower">Baby Shower</option>
+                  <option value="graduation">Graduation Party</option>
+                  <option value="reunion">Family Reunion</option>
+                  <option value="holiday">Holiday Party</option>
+                  <option value="fundraiser">Fundraiser / Charity</option>
+                  <option value="concert">Concert / Live Music</option>
+                  <option value="sports">Sports Event</option>
+                  <option value="exhibition">Exhibition / Trade Show</option>
+                  <option value="workshop">Workshop / Training</option>
+                  <option value="product-launch">Product Launch</option>
+                  <option value="house-party">House Party</option>
+                  <option value="bridal-shower">Bridal Shower</option>
+                  <option value="bachelorette">Bachelorette / Bachelor Party</option>
+                  <option value="reception">Wedding Reception</option>
+                  <option value="meeting">Business Meeting</option>
+                  <option value="gala">Gala Dinner</option>
+                  <option value="festival">Festival / Cultural Event</option>
                 </Form.Select>
               </Form.Group>
             </Col>

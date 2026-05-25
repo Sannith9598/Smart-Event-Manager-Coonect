@@ -74,20 +74,161 @@ router.post("/", auth, async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const { location, price } = req.query;
+    const { location, price, search } = req.query;
+
+    const where = {};
+
+    if (location) where.location = location;
+    if (price) where.price = { [Op.lte]: price };
+
+    // Search by business name, service areas, business types
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`;
+      where[Op.or] = [
+        { businessName: { [Op.like]: searchTerm } },
+        { description: { [Op.like]: searchTerm } },
+        { location: { [Op.like]: searchTerm } },
+      ];
+    }
 
     const managers = await EventManager.findAll({
-      where: {
-        ...(location && { location }),
-        ...(price && { price: { [Op.lte]: price } }),
-      },
+      where,
+      include: [{
+        model: db.User,
+        attributes: ['id', 'name', 'mobile', 'email'],
+        ...(search && search.trim() ? {
+          required: false,
+        } : {})
+      }]
     });
 
-    res.json(managers);
+    // If searching, also include results matching User name/mobile
+    let results = managers;
+    if (search && search.trim()) {
+      const searchTerm = `%${search.trim()}%`;
+      const userMatches = await EventManager.findAll({
+        include: [{
+          model: db.User,
+          attributes: ['id', 'name', 'mobile', 'email'],
+          where: {
+            [Op.or]: [
+              { name: { [Op.like]: searchTerm } },
+              { mobile: { [Op.like]: searchTerm } },
+            ]
+          }
+        }]
+      });
+      // Merge results, avoiding duplicates
+      const existingIds = new Set(results.map(m => m.id));
+      for (const m of userMatches) {
+        if (!existingIds.has(m.id)) {
+          results.push(m);
+        }
+      }
+    }
+
+    res.json(results);
 
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Fetch failed" });
+  }
+});
+
+
+// Search verified managers by name, business name, event type, phone, location
+router.get("/search/verified", async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || !q.trim()) {
+      return res.status(400).json({ success: false, message: "Search query is required" });
+    }
+
+    const searchTerm = `%${q.trim()}%`;
+
+    // Search in EventManager fields
+    const managerMatches = await EventManager.findAll({
+      where: {
+        isVerified: true,
+        [Op.or]: [
+          { businessName: { [Op.like]: searchTerm } },
+          { description: { [Op.like]: searchTerm } },
+          { location: { [Op.like]: searchTerm } },
+        ]
+      },
+      include: [{
+        model: db.User,
+        attributes: ['id', 'name', 'mobile', 'email', 'profilePhoto'],
+      }]
+    });
+
+    // Search in User fields (name, mobile)
+    const userMatches = await EventManager.findAll({
+      where: { isVerified: true },
+      include: [{
+        model: db.User,
+        attributes: ['id', 'name', 'mobile', 'email', 'profilePhoto'],
+        where: {
+          [Op.or]: [
+            { name: { [Op.like]: searchTerm } },
+            { mobile: { [Op.like]: searchTerm } },
+          ]
+        }
+      }]
+    });
+
+    // Merge results avoiding duplicates
+    const existingIds = new Set(managerMatches.map(m => m.id));
+    const allResults = [...managerMatches];
+    for (const m of userMatches) {
+      if (!existingIds.has(m.id)) {
+        allResults.push(m);
+      }
+    }
+
+    // Also search by businessTypes (JSON field)
+    const allVerified = await EventManager.findAll({
+      where: { isVerified: true },
+      include: [{
+        model: db.User,
+        attributes: ['id', 'name', 'mobile', 'email', 'profilePhoto'],
+      }]
+    });
+
+    for (const m of allVerified) {
+      if (existingIds.has(m.id)) continue;
+      const types = m.businessTypes || [];
+      const areas = m.serviceAreas || [];
+      const matchesType = types.some(t => t.toLowerCase().includes(q.trim().toLowerCase()));
+      const matchesArea = areas.some(a => a.toLowerCase().includes(q.trim().toLowerCase()));
+      if (matchesType || matchesArea) {
+        allResults.push(m);
+        existingIds.add(m.id);
+      }
+    }
+
+    // Format response
+    const formatted = allResults.map(m => ({
+      id: m.id,
+      userId: m.userId,
+      businessName: m.businessName,
+      description: m.description,
+      location: m.location,
+      rating: m.rating || 0,
+      totalReviews: m.totalReviews || 0,
+      yearsOfExperience: m.yearsOfExperience || 0,
+      businessTypes: m.businessTypes || [],
+      serviceAreas: m.serviceAreas || [],
+      profilePhoto: m.User ? m.User.profilePhoto : null,
+      name: m.User ? m.User.name : null,
+      mobile: m.User ? m.User.mobile : null,
+    }));
+
+    res.json({ success: true, data: formatted });
+  } catch (error) {
+    console.error("Search verified managers error:", error);
+    res.status(500).json({ success: false, message: "Search failed" });
   }
 });
 

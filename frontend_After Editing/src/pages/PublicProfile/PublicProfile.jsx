@@ -25,7 +25,9 @@ export default function PublicProfile() {
   const [hasMore, setHasMore] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showComparison, setShowComparison] = useState(false);
-  const [activeTab, setActiveTab] = useState("packages"); // "packages" or "portfolio"
+  const [activeTab, setActiveTab] = useState("packages"); // "packages", "portfolio", or "reviews"
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [compareList, setCompareList] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("compareManagers") || "[]");
@@ -35,6 +37,7 @@ export default function PublicProfile() {
   useEffect(() => {
     fetchProfile();
     fetchEvents(1);
+    fetchReviews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [managerId]);
 
@@ -92,6 +95,18 @@ export default function PublicProfile() {
       console.error("Failed to fetch bookable events:", err);
     } finally {
       setBookableLoading(false);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      setReviewsLoading(true);
+      const res = await API.get(`/review/${managerId}`);
+      setReviews(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch reviews:", err);
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -169,6 +184,12 @@ export default function PublicProfile() {
               onClick={() => setActiveTab("portfolio")}
             >
               📸 Portfolio
+            </button>
+            <button
+              className={`profile-tab-btn ${activeTab === "reviews" ? "active" : ""}`}
+              onClick={() => setActiveTab("reviews")}
+            >
+              ⭐ Reviews ({reviews.length})
             </button>
           </div>
 
@@ -287,6 +308,60 @@ export default function PublicProfile() {
               />
             )}
           </>
+        )}
+
+        {/* Reviews Tab */}
+        {activeTab === "reviews" && (
+          <div className="reviews-section">
+            {reviewsLoading ? (
+              <div className="text-center py-4">
+                <Spinner animation="border" size="sm" />
+                <p className="mt-2">Loading reviews...</p>
+              </div>
+            ) : reviews.length === 0 ? (
+              <Alert variant="info" className="text-center">
+                No reviews yet. Be the first to review this manager after completing an event!
+              </Alert>
+            ) : (
+              <>
+                <div className="mb-3 d-flex align-items-center gap-3">
+                  <h5 className="mb-0">
+                    ⭐ {profile?.rating || 0} / 5
+                  </h5>
+                  <span className="text-muted">({reviews.length} review{reviews.length > 1 ? 's' : ''})</span>
+                </div>
+                {reviews.map((review) => (
+                  <motion.div
+                    key={review.id}
+                    className="review-card"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <div className="review-header">
+                      <span className="review-author">{review.user?.name || "Customer"}</span>
+                      <span className="review-rating">
+                        {"⭐".repeat(Math.round(review.rating))} {review.rating}/5
+                      </span>
+                    </div>
+                    {review.comment && (
+                      <p className="review-comment">{review.comment}</p>
+                    )}
+                    <span className="review-date">
+                      {new Date(review.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric", month: "long", year: "numeric"
+                      })}
+                    </span>
+                    {review.managerResponse && (
+                      <div className="review-manager-response">
+                        <strong>Manager's Response:</strong>
+                        {review.managerResponse}
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </>
+            )}
+          </div>
         )}
 
         {showComparison && (

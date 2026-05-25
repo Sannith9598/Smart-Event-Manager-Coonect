@@ -17,6 +17,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [trendingLoading, setTrendingLoading] = useState(true);
   const [showManagers, setShowManagers] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const carouselRef = useRef(null);
   const managersRef = useRef(null);
   const navigate = useNavigate();
@@ -24,6 +28,45 @@ export default function Home() {
   useEffect(() => {
     fetchVerifiedManagers();
     fetchTrendingEvents();
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      handleSearch(searchQuery);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSearch = async (query) => {
+    if (!query.trim()) return;
+    try {
+      setSearchLoading(true);
+      setShowSearchResults(true);
+      const response = await API.get(`/manager/search/verified?q=${encodeURIComponent(query.trim())}`);
+      setSearchResults(response.data.data || []);
+    } catch (err) {
+      console.error("Search error:", err);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.home-search-container')) {
+        setShowSearchResults(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   const fetchVerifiedManagers = async () => {
@@ -115,6 +158,77 @@ export default function Home() {
             <p className="home-hero-subtitle">
               Browse trending events and top event managers, all in one place
             </p>
+
+            {/* Search Bar */}
+            <div className="home-search-container">
+              <div className="home-search-bar">
+                <input
+                  type="text"
+                  className="home-search-input"
+                  placeholder="Search event managers by name, event type, phone, location..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => { if (searchResults.length > 0) setShowSearchResults(true); }}
+                />
+                <button className="home-search-btn" onClick={() => handleSearch(searchQuery)}>
+                  🔍
+                </button>
+              </div>
+
+              {/* Search Results Dropdown */}
+              {showSearchResults && (
+                <motion.div
+                  className="home-search-results"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  {searchLoading ? (
+                    <div className="search-result-loading">
+                      <Spinner animation="border" size="sm" /> Searching...
+                    </div>
+                  ) : searchResults.length === 0 ? (
+                    <div className="search-result-empty">
+                      No managers found for "{searchQuery}"
+                    </div>
+                  ) : (
+                    <>
+                      <div className="search-result-count">
+                        {searchResults.length} manager{searchResults.length > 1 ? 's' : ''} found
+                      </div>
+                      {searchResults.map((manager) => (
+                        <div
+                          key={manager.id}
+                          className="search-result-item"
+                          onClick={() => {
+                            setShowSearchResults(false);
+                            navigate(`/manager/${manager.id}/profile`);
+                          }}
+                        >
+                          <img
+                            src={
+                              manager.profilePhoto ||
+                              `https://ui-avatars.com/api/?name=${encodeURIComponent(manager.businessName || "EM")}&background=6366f1&color=fff&size=40`
+                            }
+                            alt={manager.businessName}
+                            className="search-result-avatar"
+                          />
+                          <div className="search-result-info">
+                            <strong>{manager.businessName || manager.name}</strong>
+                            <div className="search-result-meta">
+                              {manager.rating > 0 && <span>⭐ {manager.rating}</span>}
+                              {manager.businessTypes?.length > 0 && (
+                                <span>{manager.businessTypes.slice(0, 2).join(", ")}</span>
+                              )}
+                              {manager.location && <span>📍 {manager.location}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </div>
 
             <motion.button
               className={`home-toggle-btn ${showManagers ? "active" : ""}`}

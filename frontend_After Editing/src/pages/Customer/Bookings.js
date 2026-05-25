@@ -19,7 +19,8 @@ import {
   FaHourglassHalf,
   FaReceipt,
   FaRupeeSign,
-  FaComments
+  FaComments,
+  FaStar
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import AppNavbar from "../../components/Navbar";
@@ -37,6 +38,12 @@ export default function Bookings() {
   const [downloading, setDownloading] = useState(false);
   const [invoiceData, setInvoiceData] = useState(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewBooking, setReviewBooking] = useState(null);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewedManagers, setReviewedManagers] = useState([]);
 
   const navigate = useNavigate();
 
@@ -75,6 +82,50 @@ export default function Bookings() {
   const handleViewDetails = (booking) => {
     setSelectedBooking(booking);
     setShowDetailModal(true);
+  };
+
+  const handleOpenReview = (booking) => {
+    setReviewBooking(booking);
+    setReviewRating(0);
+    setReviewComment("");
+    setShowReviewModal(true);
+  };
+
+  const handleSubmitReview = async () => {
+    if (!reviewRating || reviewRating < 1) {
+      toast.error("Please select a rating");
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      // The review endpoint needs the EventManager profile ID (not the User ID)
+      // Fetch all managers and find the one matching this booking's managerId (User ID)
+      const profileRes = await API.get("/manager");
+      const profiles = profileRes.data || [];
+      const matchedProfile = profiles.find(p => p.userId === reviewBooking.managerId);
+
+      if (!matchedProfile) {
+        toast.error("Could not find manager profile. Please try again.");
+        setSubmittingReview(false);
+        return;
+      }
+
+      await API.post("/review", {
+        managerId: matchedProfile.id,
+        rating: reviewRating,
+        comment: reviewComment.trim() || null,
+      });
+
+      toast.success("Review submitted successfully! Thank you for your feedback.");
+      setShowReviewModal(false);
+      setReviewedManagers(prev => [...prev, reviewBooking.managerId]);
+    } catch (err) {
+      console.error("Review submission error:", err);
+      const msg = err.response?.data?.message || "Failed to submit review";
+      toast.error(msg);
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   const handleCancelBooking = async (bookingId) => {
@@ -346,6 +397,15 @@ export default function Bookings() {
                             <FaReceipt /> Preview
                           </button>
                         </>
+                      )}
+                      {booking.status === "completed" && !reviewedManagers.includes(booking.managerId) && (
+                        <button
+                          className="booking-action-btn btn-review-action"
+                          onClick={() => handleOpenReview(booking)}
+                          style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#fff", border: "none" }}
+                        >
+                          <FaStar /> Review
+                        </button>
                       )}
                     </div>
                   </motion.div>
@@ -710,6 +770,78 @@ export default function Bookings() {
             <FaDownload /> Download PDF
           </button>
           <button className="btn-pro btn-pro-toggle" onClick={() => setShowInvoiceModal(false)}>Close</button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Review Modal */}
+      <Modal
+        show={showReviewModal}
+        onHide={() => setShowReviewModal(false)}
+        centered
+        className="review-submit-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <FaStar className="me-2" style={{ color: "#f59e0b" }} />
+            Rate & Review
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {reviewBooking && (
+            <div className="text-center">
+              <h5 className="mb-1">{reviewBooking.event?.name || "Event"}</h5>
+              <p className="text-muted mb-3">
+                Manager: {reviewBooking.manager?.name || "Event Manager"}
+              </p>
+
+              <p className="fw-bold mb-2">How was your experience?</p>
+              <div className="review-modal-stars">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    className={`star-btn ${reviewRating >= star ? "active" : ""}`}
+                    onClick={() => setReviewRating(star)}
+                    type="button"
+                  >
+                    {reviewRating >= star ? "⭐" : "☆"}
+                  </button>
+                ))}
+              </div>
+              <p className="text-muted" style={{ fontSize: "0.85rem" }}>
+                {reviewRating === 1 && "Poor"}
+                {reviewRating === 2 && "Fair"}
+                {reviewRating === 3 && "Good"}
+                {reviewRating === 4 && "Very Good"}
+                {reviewRating === 5 && "Excellent!"}
+              </p>
+
+              <div className="mt-3 text-start">
+                <label className="form-label fw-bold">Feedback (optional)</label>
+                <textarea
+                  className="form-control"
+                  rows={4}
+                  placeholder="Share your experience with this event manager..."
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  maxLength={500}
+                />
+                <small className="text-muted">{reviewComment.length}/500 characters</small>
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <button className="btn-pro btn-pro-toggle" onClick={() => setShowReviewModal(false)}>
+            Cancel
+          </button>
+          <button
+            className="btn-pro btn-pro-complete"
+            onClick={handleSubmitReview}
+            disabled={submittingReview || reviewRating === 0}
+            style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", border: "none" }}
+          >
+            {submittingReview ? "Submitting..." : "Submit Review"}
+          </button>
         </Modal.Footer>
       </Modal>
 
