@@ -9,6 +9,10 @@ import bg from "../images/home.jpg";
 import Chatbot from "../Chatbot";
 import Footer from "../components/Footer";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { SkeletonEventCard, SkeletonManagerBubble } from "../components/SkeletonLoader";
+import QuickFilters from "../components/QuickFilters";
+import RecentlyViewed, { addToRecentlyViewed } from "../components/RecentlyViewed";
+import PageTransition from "../components/PageTransition";
 
 export default function Home() {
   const { darkMode } = useTheme();
@@ -21,6 +25,7 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [activeFilter, setActiveFilter] = useState(null);
   const carouselRef = useRef(null);
   const managersRef = useRef(null);
   const navigate = useNavigate();
@@ -112,10 +117,22 @@ export default function Home() {
   };
 
   const handleManagerClick = (manager) => {
+    addToRecentlyViewed({
+      id: manager.id,
+      type: "manager",
+      name: manager.businessName || "Manager",
+      image: manager.profilePhoto || manager.images?.[0]?.url || null,
+    });
     navigate(`/manager/${manager.id}/profile`);
   };
 
   const handleBookNow = (event) => {
+    addToRecentlyViewed({
+      id: event.id,
+      type: "event",
+      name: event.name || "Event",
+      image: event.image || event.images?.[0] || null,
+    });
     navigate(`/event/${event.id}`);
   };
 
@@ -133,6 +150,7 @@ export default function Home() {
   };
 
   return (
+    <PageTransition>
     <>
       <AppNavbar />
       <Chatbot />
@@ -242,6 +260,16 @@ export default function Home() {
         </Container>
       </div>
 
+      {/* Quick Filters */}
+      <Container>
+        <QuickFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+      </Container>
+
+      {/* Recently Viewed */}
+      <Container>
+        <RecentlyViewed />
+      </Container>
+
       {/* Event Managers - Instagram Story Bubbles */}
       <AnimatePresence>
         {showManagers && (
@@ -259,9 +287,7 @@ export default function Home() {
               </div>
 
               {loading ? (
-                <div className="text-center py-4">
-                  <Spinner animation="border" variant="primary" size="sm" />
-                </div>
+                <SkeletonManagerBubble count={8} />
               ) : verifiedManagers.length === 0 ? (
                 <Alert variant="info" className="text-center">
                   No verified managers available yet.
@@ -340,10 +366,7 @@ export default function Home() {
               </div>
 
               {trendingLoading ? (
-                <div className="text-center py-5">
-                  <Spinner animation="border" variant="primary" />
-                  <p className="mt-3">Loading trending events...</p>
-                </div>
+                <SkeletonEventCard count={4} />
               ) : trendingEvents.length === 0 ? (
                 <Alert variant="info" className="text-center">
                   No trending events available yet. Check back soon!
@@ -359,7 +382,15 @@ export default function Home() {
                   </button>
 
                   <div className="home-carousel-track" ref={carouselRef}>
-                    {trendingEvents.map((event, index) => (
+                    {trendingEvents
+                      .filter((event) => {
+                        if (!activeFilter) return true;
+                        if (activeFilter === "trending") return true;
+                        if (activeFilter === "top-rated") return (event.rating || 0) >= 4;
+                        if (activeFilter === "under-50k") return (event.price || 0) < 50000;
+                        return (event.category || "").toLowerCase() === activeFilter;
+                      })
+                      .map((event, index) => (
                       <motion.div
                         key={event.id}
                         className="home-event-card"
@@ -482,5 +513,6 @@ export default function Home() {
 
       <Footer />
     </>
+    </PageTransition>
   );
 }

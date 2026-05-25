@@ -9,7 +9,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const model = genAI.getGenerativeModel({
   model: "gemini-2.5-flash",
   generationConfig: {
-    maxOutputTokens: 500,
+    maxOutputTokens: 4096,
     temperature: 0.7,
   },
   safetySettings: [
@@ -25,7 +25,7 @@ const model = genAI.getGenerativeModel({
  * Includes timeout, retry logic, and graceful fallback.
  */
 async function askGemini(prompt, options = {}) {
-  const { retries = 2, timeoutMs = 10000 } = options;
+  const { retries = 2, timeoutMs = 30000 } = options;
 
   if (!process.env.GEMINI_API_KEY) {
     return null; // Caller should handle null as "AI unavailable"

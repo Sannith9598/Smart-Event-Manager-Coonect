@@ -109,7 +109,6 @@ router.post("/submit-verification", auth, async (req, res) => {
     let eventManager = await db.EventManager.findOne({ where: { userId } });
     
     if (!eventManager) {
-      console.log("Creating EventManager profile...");
       eventManager = await db.EventManager.create({
         userId: userId,
         location: null,
@@ -120,7 +119,6 @@ router.post("/submit-verification", auth, async (req, res) => {
         isVerified: false,
         verificationStatus: 'not_submitted'
       });
-      console.log("EventManager profile created");
     }
     
     if (eventManager.isVerified) {

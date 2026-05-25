@@ -2,11 +2,120 @@ import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import API from './services/api';
 
+/**
+ * Lightweight markdown renderer for bot messages.
+ * Supports: **bold**, - bullet lists, 1. numbered lists, ## headings.
+ * Unsupported tokens are displayed as raw text (graceful degradation).
+ */
+function renderMarkdown(text) {
+  if (!text) return null;
+
+  const lines = text.split('\n');
+  const elements = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Heading: ## text
+    if (/^##\s+(.+)/.test(line)) {
+      const match = line.match(/^##\s+(.+)/);
+      elements.push(
+        <h2 key={`h-${i}`} className="md-heading">{renderInline(match[1])}</h2>
+      );
+      i++;
+      continue;
+    }
+
+    // Unordered list: consecutive lines starting with "- "
+    if (/^-\s+(.+)/.test(line)) {
+      const listItems = [];
+      while (i < lines.length && /^-\s+(.+)/.test(lines[i])) {
+        const match = lines[i].match(/^-\s+(.+)/);
+        listItems.push(
+          <li key={`ul-${i}`}>{renderInline(match[1])}</li>
+        );
+        i++;
+      }
+      elements.push(<ul key={`ul-group-${i}`} className="md-list">{listItems}</ul>);
+      continue;
+    }
+
+    // Ordered list: consecutive lines starting with "number. "
+    if (/^\d+\.\s+(.+)/.test(line)) {
+      const listItems = [];
+      while (i < lines.length && /^\d+\.\s+(.+)/.test(lines[i])) {
+        const match = lines[i].match(/^\d+\.\s+(.+)/);
+        listItems.push(
+          <li key={`ol-${i}`}>{renderInline(match[1])}</li>
+        );
+        i++;
+      }
+      elements.push(<ol key={`ol-group-${i}`} className="md-list">{listItems}</ol>);
+      continue;
+    }
+
+    // Bullet lines using • character (common in the welcome message)
+    if (/^[•]\s*(.+)/.test(line)) {
+      const listItems = [];
+      while (i < lines.length && /^[•]\s*(.+)/.test(lines[i])) {
+        const match = lines[i].match(/^[•]\s*(.+)/);
+        listItems.push(
+          <li key={`bul-${i}`}>{renderInline(match[1])}</li>
+        );
+        i++;
+      }
+      elements.push(<ul key={`bul-group-${i}`} className="md-list">{listItems}</ul>);
+      continue;
+    }
+
+    // Regular paragraph line
+    elements.push(
+      <p key={`p-${i}`}>{renderInline(line)}</p>
+    );
+    i++;
+  }
+
+  return elements;
+}
+
+/**
+ * Renders inline markdown (bold) within a line of text.
+ * Converts **text** to <strong>text</strong>.
+ * Returns a mix of strings and React elements.
+ */
+function renderInline(text) {
+  if (!text) return text;
+
+  const parts = [];
+  const regex = /\*\*(.+?)\*\*/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    // Text before the bold
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    // Bold text
+    parts.push(<strong key={`b-${match.index}`}>{match[1]}</strong>);
+    lastIndex = regex.lastIndex;
+  }
+
+  // Remaining text after last bold
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : text;
+}
+
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState([]);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -36,14 +145,18 @@ const Chatbot = () => {
     setInput("");
     setIsTyping(true);
     
+    const trimmedHistory = conversationHistory.slice(-20);
+    
     try {
       const response = await API.post("/chatbot/chat", {
-        message: userMessage
+        message: userMessage,
+        history: trimmedHistory
       });
       
       const aiReply = response.data.reply;
       const suggestions = response.data.suggestions || [];
       setMessages(prev => [...prev, { type: "bot", text: aiReply, suggestions }]);
+      setConversationHistory(prev => [...prev, { role: 'user', content: userMessage }, { role: 'bot', content: aiReply }]);
     } catch (error) {
       console.error("Error calling chatbot API:", error);
       setMessages(prev => [...prev, { 
@@ -66,11 +179,15 @@ const Chatbot = () => {
     // Auto-send the suggestion
     setMessages(prev => [...prev, { type: "user", text: suggestion }]);
     setIsTyping(true);
-    API.post("/chatbot/chat", { message: suggestion })
+    
+    const trimmedHistory = conversationHistory.slice(-20);
+    
+    API.post("/chatbot/chat", { message: suggestion, history: trimmedHistory })
       .then((response) => {
         const aiReply = response.data.reply;
         const suggestions = response.data.suggestions || [];
         setMessages(prev => [...prev, { type: "bot", text: aiReply, suggestions }]);
+        setConversationHistory(prev => [...prev, { role: 'user', content: suggestion }, { role: 'bot', content: aiReply }]);
       })
       .catch(() => {
         setMessages(prev => [...prev, { type: "bot", text: "Sorry, I'm having trouble connecting right now. Please try again later." }]);
@@ -118,7 +235,7 @@ const Chatbot = () => {
                 <div className="message-content">
                   {msg.type === "bot" && <span className="message-icon">🎯</span>}
                   <div className="message-text">
-                    {msg.text.split('\n').map((line, i) => (
+                    {msg.type === "bot" ? renderMarkdown(msg.text) : msg.text.split('\n').map((line, i) => (
                       <p key={i}>{line}</p>
                     ))}
                     {msg.suggestions && msg.suggestions.length > 0 && (
@@ -155,13 +272,19 @@ const Chatbot = () => {
           </div>
           
           <div className="chatbot-input">
-            <input
-              type="text"
-              placeholder="Ask about event planning, tips, budgets..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
+            <div className="chatbot-input-wrapper">
+              <input
+                type="text"
+                placeholder="Ask about event planning, tips, budgets..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                maxLength={1500}
+              />
+              <span className={`char-counter${input.length > 1400 ? ' char-counter-warn' : ''}`}>
+                {input.length}/1500
+              </span>
+            </div>
             <button onClick={handleSend}>
               Send
             </button>
@@ -330,6 +453,39 @@ const Chatbot = () => {
           color: #374151;
         }
 
+        .message-text .md-heading {
+          margin: 10px 0 6px 0;
+          font-size: 15px;
+          font-weight: 700;
+          color: #1f2937;
+          line-height: 1.3;
+        }
+
+        .message-text .md-list {
+          margin: 6px 0;
+          padding-left: 20px;
+        }
+
+        .message-text .md-list li {
+          margin: 3px 0;
+          line-height: 1.4;
+          font-size: 14px;
+          color: #374151;
+        }
+
+        .message-text ol.md-list {
+          list-style-type: decimal;
+        }
+
+        .message-text ul.md-list {
+          list-style-type: disc;
+        }
+
+        .message-text strong {
+          font-weight: 700;
+          color: #111827;
+        }
+
         .message.user .message-text {
           background: linear-gradient(135deg, #6366f1, #8b5cf6);
           color: white;
@@ -383,8 +539,15 @@ const Chatbot = () => {
           gap: 10px;
         }
 
-        .chatbot-input input {
+        .chatbot-input-wrapper {
           flex: 1;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .chatbot-input input {
+          width: 100%;
           padding: 10px;
           border: 1px solid #e5e7eb;
           border-radius: 10px;
@@ -396,6 +559,18 @@ const Chatbot = () => {
         .chatbot-input input:focus {
           border-color: #6366f1;
           box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
+        }
+
+        .char-counter {
+          font-size: 11px;
+          color: #9ca3af;
+          text-align: right;
+          margin-top: 2px;
+          padding-right: 4px;
+        }
+
+        .char-counter-warn {
+          color: #ef4444;
         }
 
         .suggestion-chips {
@@ -480,6 +655,15 @@ const Chatbot = () => {
         body.dark-mode .message-text p {
           color: #e2e8f0;
         }
+        body.dark-mode .message-text .md-heading {
+          color: #f1f5f9;
+        }
+        body.dark-mode .message-text .md-list li {
+          color: #e2e8f0;
+        }
+        body.dark-mode .message-text strong {
+          color: #f8fafc;
+        }
         body.dark-mode .message.user .message-text {
           background: linear-gradient(135deg, #6366f1, #8b5cf6);
           color: white;
@@ -504,6 +688,12 @@ const Chatbot = () => {
         }
         body.dark-mode .chatbot-input input:focus {
           border-color: #6366f1;
+        }
+        body.dark-mode .char-counter {
+          color: #64748b;
+        }
+        body.dark-mode .char-counter-warn {
+          color: #ef4444;
         }
 
         body.dark-mode .suggestion-chips {

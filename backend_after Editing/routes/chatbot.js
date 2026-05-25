@@ -8,14 +8,31 @@ const rateLimit = require("express-rate-limit");
 
 // Sanitize user input to prevent prompt injection
 const sanitizeForPrompt = (input) => {
-  if (!input) return "";
-  return input
+  // Step 0: Return empty string for empty/whitespace-only input
+  if (!input || !input.trim()) return "";
+  // Step 1: Filter injection patterns on FULL input (before truncation)
+  let filtered = input
     .replace(/ignore\s+(all\s+)?(previous|above|prior)\s+(instructions|rules|prompts)/gi, "[filtered]")
     .replace(/you\s+are\s+now/gi, "[filtered]")
     .replace(/system\s*:/gi, "[filtered]")
     .replace(/\bpretend\b/gi, "[filtered]")
-    .replace(/\bact\s+as\b/gi, "[filtered]")
-    .slice(0, 500);
+    .replace(/\bact\s+as\b/gi, "[filtered]");
+  // Step 2: Truncate to 1500 chars AFTER filtering
+  return filtered.slice(0, 1500);
+};
+
+// Validate and trim conversation history
+const validateConversationHistory = (history) => {
+  if (!Array.isArray(history) || history.length === 0) return [];
+  const valid = history.filter(
+    (msg) =>
+      msg &&
+      typeof msg.role === "string" &&
+      ["user", "bot"].includes(msg.role) &&
+      typeof msg.content === "string"
+  );
+  // Keep only last 20 valid messages (10 most recent exchanges)
+  return valid.slice(-20);
 };
 
 const chatLimiter = rateLimit({
@@ -253,9 +270,11 @@ async function getQuickSuggestions() {
 
 router.post("/chat", chatLimiter, async (req, res) => {
   try {
-    const rawMessage = (req.body.message || "").trim();
+    const { message, history } = req.body;
+    const rawMessage = (message || "").trim();
     const userMessage = rawMessage.toLowerCase();
     const sanitizedMessage = sanitizeForPrompt(rawMessage);
+    const validatedHistory = validateConversationHistory(history);
 
     // Greeting handler — includes dynamic suggestions
     if (["hi", "hello", "hey", "hii", "hola", "namaste"].includes(userMessage)) {
@@ -394,7 +413,7 @@ router.post("/chat", chatLimiter, async (req, res) => {
         });
         recText += `💬 Try refining your search:\n• "remove price filter"\n• "show all ${query.eventType || "events"}"\n• "increase budget to ${query.maxPrice ? query.maxPrice * 2 : 50000}"`;
 
-        const prompt = buildAIPrompt(sanitizedMessage, recText, "no_exact_match");
+        const prompt = buildAIPrompt(sanitizedMessage, recText, "no_exact_match", validatedHistory);
         let aiReply = await askGemini(prompt);
         if (!aiReply || aiReply.length < 10) aiReply = recText;
 
@@ -497,14 +516,36 @@ router.post("/chat", chatLimiter, async (req, res) => {
     else if (query.isContactQuery) promptType = "contact";
     else if (query.isCompareQuery) promptType = "compare";
 
-    const prompt = buildAIPrompt(sanitizedMessage, resultText, promptType);
+    const prompt = buildAIPrompt(sanitizedMessage, resultText, promptType, validatedHistory);
     let aiReply = await askGemini(prompt);
 
     // Build follow-up suggestions based on current query context
     const followUpSuggestions = buildFollowUpSuggestions(query, finalData.length);
 
-    // Fallback to raw formatted data if AI is unavailable
-    if (!aiReply || aiReply.length < 15) {
+    // Short-response fallback: if AI response < 50 chars and search data exists, use pre-formatted results
+    if (aiReply && aiReply.length < 50 && resultText.trim().length > 0) {
+      return res.json({
+        reply: resultText.trim() + "\n\n" + followUpSuggestions,
+        suggestions: getClickableSuggestions(query),
+      });
+    }
+
+    // Timeout fallback: if askGemini returns null (all retries exhausted)
+    if (!aiReply) {
+      if (resultText.trim().length > 0) {
+        return res.json({
+          reply: resultText.trim() + "\n\n" + followUpSuggestions,
+          suggestions: getClickableSuggestions(query),
+        });
+      }
+      return res.json({
+        reply: "I'm taking a bit longer than expected to respond. Please try again in a moment.",
+        suggestions: getClickableSuggestions(query),
+      });
+    }
+
+    // Fallback to raw formatted data if AI response is too short (< 15 chars)
+    if (aiReply.length < 15) {
       return res.json({
         reply: resultText.trim() + "\n\n" + followUpSuggestions,
         suggestions: getClickableSuggestions(query),
@@ -580,24 +621,38 @@ function getClickableSuggestions(query) {
 
 // ─── AI Prompt Builder ───────────────────────────────────────────────────────
 
-function buildAIPrompt(userMessage, data, type) {
+function buildAIPrompt(userMessage, data, type, conversationHistory = []) {
+  const historySection = conversationHistory.length > 0
+    ? `\nCONVERSATION HISTORY:\n${conversationHistory.map(m => `${m.role}: ${m.content}`).join('\n')}\n`
+    : '';
+
   const baseRules = `
 RULES:
 1. Use ONLY the DATA provided below — do not invent information
-2. Keep responses concise (4-6 lines max)
+2. Use markdown formatting: **bold** for names, bullet points for lists, numbered lists for results, ## headings for sections
 3. Use emojis sparingly for readability
 4. If contact info is in DATA, share it. If missing, say "Contact via platform"
 5. Format prices with ₹ symbol
-6. Be friendly and helpful
+6. Be friendly, thorough, and helpful
+7. Present ALL results in the DATA section with full details (name, services, price, rating, location, experience, capacity)
+8. If a detail field is not available, omit it rather than showing "N/A"
+9. Include 2-3 actionable planning tips relevant to the query
+10. If the user references previous messages, use the conversation history to provide context-aware responses
+11. For non-search queries without results data, provide 3-5 actionable planning steps relevant to the user's question
 `;
+
+  const summaryInstruction = `If presenting 2 or more results, begin with a 1-2 sentence summary stating the total number of results and the primary filter criteria matched.`;
+
+  const followUpInstruction = `Interpret follow-up messages in the context of the prior conversation. If the user uses positional references (e.g., "the second one", "the first planner"), identify the referenced result from conversation history and provide details specific to that result.`;
 
   switch (type) {
     case "search_results":
       return `You are a helpful event planning assistant for an Indian event booking platform.
 The user searched for: "${userMessage}"
+${historySection}
 ${baseRules}
-7. Present the top 2-3 results naturally with key details (name, price, rating, location)
-8. End with a helpful suggestion to refine or book
+${summaryInstruction}
+${followUpInstruction}
 
 DATA:
 ${data}
@@ -607,10 +662,12 @@ Response:`;
     case "no_exact_match":
       return `You are a helpful event planning assistant.
 The user searched for: "${userMessage}" but no exact matches were found.
+${historySection}
 ${baseRules}
-7. Acknowledge no exact match gently
-8. Present 1-2 best alternative suggestions naturally
-9. End with an encouraging question to help refine their search
+${followUpInstruction}
+- Acknowledge no exact match gently
+- Present the best alternative suggestions naturally from the DATA
+- End with an encouraging question to help refine their search
 
 DATA:
 ${data}
@@ -620,10 +677,12 @@ Response:`;
     case "availability":
       return `You are a helpful event planning assistant.
 The user is asking about availability: "${userMessage}"
+${historySection}
 ${baseRules}
-7. Focus on available dates from the DATA
-8. If no dates shown, suggest contacting the planner directly
-9. Mention booking early for popular dates
+${followUpInstruction}
+- Focus on available dates from the DATA
+- If no dates shown, suggest contacting the planner directly
+- Mention booking early for popular dates
 
 DATA:
 ${data}
@@ -633,10 +692,12 @@ Response:`;
     case "details":
       return `You are a helpful event planning assistant.
 The user wants details about: "${userMessage}"
+${historySection}
 ${baseRules}
-7. Focus on what's included, addons, capacity, and duration from DATA
-8. Highlight value-for-money aspects
-9. Suggest asking about customization options
+${followUpInstruction}
+- Focus on what's included, addons, capacity, and duration from DATA
+- Highlight value-for-money aspects
+- Suggest asking about customization options
 
 DATA:
 ${data}
@@ -646,10 +707,11 @@ Response:`;
     case "contact":
       return `You are a helpful event planning assistant.
 The user wants contact information: "${userMessage}"
+${historySection}
 ${baseRules}
-7. Share contact details (mobile/email) from DATA prominently
-8. If no contact info, suggest booking through the platform
-9. Keep it brief
+${followUpInstruction}
+- Share contact details (mobile/email) from DATA prominently
+- If no contact info, suggest booking through the platform
 
 DATA:
 ${data}
@@ -659,9 +721,12 @@ Response:`;
     case "compare":
       return `You are a helpful event planning assistant.
 The user wants to compare options: "${userMessage}"
+${historySection}
 ${baseRules}
-7. Present a brief comparison highlighting differences in price, rating, experience, and services
-8. Give a balanced recommendation based on the user's apparent priorities
+${summaryInstruction}
+${followUpInstruction}
+- Present a detailed comparison highlighting differences in price, rating, experience, and services
+- Give a balanced recommendation based on the user's apparent priorities
 
 DATA:
 ${data}
@@ -671,7 +736,9 @@ Response:`;
     default:
       return `You are a helpful event planning assistant.
 User: "${userMessage}"
+${historySection}
 ${baseRules}
+${followUpInstruction}
 DATA:
 ${data}
 Response:`;

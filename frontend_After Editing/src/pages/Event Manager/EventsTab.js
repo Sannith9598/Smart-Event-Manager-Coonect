@@ -106,7 +106,6 @@ export default function EventsTab({
       showToast("Event deleted successfully!", "success");
       fetchEvents();
     } catch (err) {
-      console.log(err);
       showToast("Failed to delete event", "error");
     }
   };
@@ -120,7 +119,6 @@ export default function EventsTab({
       );
       fetchEvents();
     } catch (err) {
-      console.log(err);
       showToast("Failed to update status", "error");
     }
   };

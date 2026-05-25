@@ -82,7 +82,7 @@ export default function AddEditEventModal({ show, onHide, editingEvent, onSucces
 
   const fetchManagerEvents = async () => {
     try { setImportLoading(true); const res = await API.get("/event/events"); setManagerEvents(res.data || []); }
-    catch (err) { console.log("Error fetching events for import:", err); }
+    catch (err) { showToast("Error fetching events for import", "error"); }
     finally { setImportLoading(false); }
   };
 
@@ -108,7 +108,7 @@ export default function AddEditEventModal({ show, onHide, editingEvent, onSucces
       const res = await API.post("/manager/upload", formData);
       setEventForm((prev) => ({ ...prev, images: [...prev.images, res.data.imageUrl], image: prev.image || res.data.imageUrl }));
       showToast("Image uploaded!", "success");
-    } catch (err) { console.log("Upload error", err); showToast("Failed to upload image", "error"); }
+    } catch (err) { showToast("Failed to upload image", "error"); }
     finally { setUploading(false); }
   };
   const handleMultipleFiles = async (files) => {
@@ -120,7 +120,7 @@ export default function AddEditEventModal({ show, onHide, editingEvent, onSucces
     const url = eventForm.images[idx];
     if (url && url.includes("cloudinary")) {
       try { const parts = url.split("/upload/"); if (parts[1]) { let pid = parts[1].replace(/^v\d+\//, "").replace(/\.[^/.]+$/, ""); await API.delete("/manager/delete-image", { data: { publicId: pid } }); } }
-      catch (err) { console.log("Cloudinary delete failed:", err); }
+      catch (err) { /* Cloudinary delete failed silently */ }
     }
     setEventForm((prev) => { const imgs = prev.images.filter((_, i) => i !== idx); return { ...prev, images: imgs, image: imgs[0] || "" }; });
     showToast("Image removed", "info");
@@ -293,7 +293,7 @@ export default function AddEditEventModal({ show, onHide, editingEvent, onSucces
         showToast("Event added successfully!", "success");
       }
       onHide(); onSuccess(); setEventForm(getEmptyForm());
-    } catch (err) { console.log("Event save error", err); showToast("Failed to save event", "error"); }
+    } catch (err) { showToast("Failed to save event", "error"); }
   };
 
   // ===== RENDER SERVICE SECTION =====

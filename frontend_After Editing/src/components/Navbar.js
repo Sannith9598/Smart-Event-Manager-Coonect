@@ -4,6 +4,7 @@ import { FaUserCircle, FaShieldAlt, FaMoon, FaSun, FaHeart, FaChartLine, FaEnvel
 import { toast } from "react-toastify";
 import { useTheme } from "../context/ThemeContext";
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import NotificationBell from "./NotificationBell";
 import API from "../services/api";
 
@@ -94,7 +95,18 @@ export default function AppNavbar() {
                 onClick={toggleDarkMode}
                 title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
               >
-                {darkMode ? <FaSun /> : <FaMoon />}
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={darkMode ? "sun" : "moon"}
+                    initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+                    animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                    exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
+                    transition={{ duration: 0.3 }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                  >
+                    {darkMode ? <FaSun /> : <FaMoon />}
+                  </motion.span>
+                </AnimatePresence>
               </Button>
 
               {user ? (

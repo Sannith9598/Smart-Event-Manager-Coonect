@@ -123,7 +123,6 @@ export default function BookingsTab({
       showToast(`Booking ${status} successfully!`, "success");
       await fetchBookings();
     } catch (err) {
-      console.log(err);
       showToast("Failed to update booking", "error");
     } finally {
       setLoading(false);

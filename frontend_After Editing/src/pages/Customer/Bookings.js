@@ -27,6 +27,7 @@ import AppNavbar from "../../components/Navbar";
 import API from "../../services/api";
 import { generateInvoicePDF } from "../../utils/generateInvoice";
 import { toast } from "react-toastify";
+import ConfettiEffect from "../../components/ConfettiEffect";
 
 export default function Bookings() {
   const [user, setUser] = useState(null);
@@ -44,6 +45,7 @@ export default function Bookings() {
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewedManagers, setReviewedManagers] = useState([]);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const navigate = useNavigate();
 
@@ -118,6 +120,8 @@ export default function Bookings() {
 
       toast.success("Review submitted successfully! Thank you for your feedback.");
       setShowReviewModal(false);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
       setReviewedManagers(prev => [...prev, reviewBooking.managerId]);
     } catch (err) {
       console.error("Review submission error:", err);
@@ -223,6 +227,7 @@ export default function Bookings() {
   return (
     <>
       <AppNavbar />
+      <ConfettiEffect trigger={showConfetti} />
 
       <div className="bookings-page">
         <Container>

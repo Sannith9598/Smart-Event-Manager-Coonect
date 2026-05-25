@@ -76,11 +76,8 @@ app.set("io", io);
 
 // Socket.io connection handling
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id, "userId:", socket.userId);
-
   // Auto-join user's personal room based on authenticated userId
   socket.join(`user_${socket.userId}`);
-  console.log(`User ${socket.userId} joined room user_${socket.userId}`);
 
   // Legacy support: still allow explicit join (but only for own room)
   socket.on("join", (userId) => {
@@ -119,9 +116,8 @@ io.on("connection", (socket) => {
     socket.leave(`booking_${bookingId}`);
   });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
+  socket.on("disconnect", () => {});
+
 });
 
 app.use(cors({

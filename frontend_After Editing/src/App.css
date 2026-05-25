@@ -3637,3 +3637,563 @@ body.dark-mode .review-manager-response {
   background: #1e1b4b;
   border-color: #6366f1;
 }
+
+
+/* ============================================
+   SKELETON LOADERS
+   ============================================ */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+body.dark-mode .skeleton-shimmer {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 200% 100%;
+}
+
+.skeleton-card {
+  width: 280px;
+  min-width: 280px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+body.dark-mode .skeleton-card {
+  background: #1e293b;
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 160px;
+}
+
+.skeleton-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+}
+
+.skeleton-line.short {
+  height: 10px;
+}
+
+.skeleton-event-grid {
+  display: flex;
+  gap: 20px;
+  overflow: hidden;
+  padding: 10px 0;
+}
+
+.skeleton-event-card {
+  min-width: 300px;
+  max-width: 300px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+body.dark-mode .skeleton-event-card {
+  background: #1e293b;
+}
+
+.skeleton-event-image {
+  width: 100%;
+  height: 180px;
+}
+
+.skeleton-event-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-bubble {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 70px;
+}
+
+.skeleton-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+}
+
+.skeleton-avatar-large {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+}
+
+.skeleton-profile {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.skeleton-profile-header {
+  height: 150px;
+  width: 100%;
+}
+
+.skeleton-profile-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: -50px;
+}
+
+.skeleton-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-table-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 10px;
+}
+
+body.dark-mode .skeleton-table-row {
+  background: #1e293b;
+}
+
+/* ============================================
+   QUICK FILTERS
+   ============================================ */
+.quick-filters-container {
+  padding: 16px 0;
+  margin-bottom: 8px;
+}
+
+.quick-filters-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.quick-filters-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-filter-chip {
+  white-space: nowrap;
+  padding: 8px 18px;
+  border-radius: 25px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.quick-filter-chip:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: #f0f0ff;
+}
+
+.quick-filter-chip.active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+body.dark-mode .quick-filter-chip {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+body.dark-mode .quick-filter-chip:hover {
+  border-color: #6366f1;
+  color: #a5b4fc;
+  background: #1e1b4b;
+}
+
+body.dark-mode .quick-filter-chip.active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ============================================
+   RECENTLY VIEWED
+   ============================================ */
+.recently-viewed-section {
+  padding: 16px 0;
+  margin-bottom: 10px;
+}
+
+.recently-viewed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.recently-viewed-header h6 {
+  margin: 0;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+body.dark-mode .recently-viewed-header h6 {
+  color: #f1f5f9;
+}
+
+.recently-viewed-clear {
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.recently-viewed-clear:hover {
+  text-decoration: underline;
+}
+
+.recently-viewed-scroll {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 8px 0;
+  scrollbar-width: none;
+}
+
+.recently-viewed-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.recently-viewed-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 75px;
+  cursor: pointer;
+  position: relative;
+}
+
+.recently-viewed-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+  transition: border-color 0.2s;
+}
+
+.recently-viewed-item:hover .recently-viewed-img {
+  border-color: #6366f1;
+}
+
+.recently-viewed-name {
+  font-size: 0.7rem;
+  color: #475569;
+  margin-top: 4px;
+  text-align: center;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dark-mode .recently-viewed-name {
+  color: #94a3b8;
+}
+
+.recently-viewed-type {
+  position: absolute;
+  bottom: 18px;
+  right: 8px;
+  font-size: 0.6rem;
+  background: #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+body.dark-mode .recently-viewed-type {
+  background: #334155;
+}
+
+/* ============================================
+   BOOKING STEPPER
+   ============================================ */
+.booking-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 16px 0;
+  margin-bottom: 8px;
+}
+
+.stepper-item {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.stepper-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: #fff;
+  font-weight: 600;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.stepper-circle.active {
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.stepper-circle.completed {
+  background: #10b981 !important;
+}
+
+.stepper-label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  position: absolute;
+  margin-top: 55px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.stepper-label.active {
+  color: #6366f1;
+  font-weight: 600;
+}
+
+.stepper-item {
+  position: relative;
+}
+
+.stepper-line {
+  width: 40px;
+  height: 3px;
+  background: #e2e8f0;
+  margin: 0 4px;
+  border-radius: 2px;
+  transition: background 0.3s;
+}
+
+.stepper-line.active {
+  background: #6366f1;
+}
+
+body.dark-mode .stepper-line {
+  background: #334155;
+}
+
+body.dark-mode .stepper-label {
+  color: #64748b;
+}
+
+body.dark-mode .stepper-label.active {
+  color: #a5b4fc;
+}
+
+/* ============================================
+   IMAGE LIGHTBOX
+   ============================================ */
+.lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  z-index: 10001;
+}
+
+.lightbox-close:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  z-index: 10001;
+}
+
+.lightbox-nav:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.lightbox-prev {
+  left: 20px;
+}
+
+.lightbox-next {
+  right: 20px;
+}
+
+.lightbox-content {
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-media {
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.lightbox-zoom-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0,0,0,0.7);
+  padding: 8px 16px;
+  border-radius: 25px;
+  z-index: 10001;
+}
+
+.lightbox-zoom-controls button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.lightbox-zoom-controls span {
+  color: #fff;
+  font-size: 0.8rem;
+  min-width: 40px;
+  text-align: center;
+}
+
+.lightbox-counter {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 0.85rem;
+  background: rgba(0,0,0,0.5);
+  padding: 4px 14px;
+  border-radius: 20px;
+  z-index: 10001;
+}
+
+/* ============================================
+   AVAILABILITY BADGE
+   ============================================ */
+.availability-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.availability-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.2); }
+}
+
+.availability-label {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   PAGE TRANSITION WRAPPER
+   ============================================ */
+.page-transition-wrapper {
+  min-height: 100vh;
+}

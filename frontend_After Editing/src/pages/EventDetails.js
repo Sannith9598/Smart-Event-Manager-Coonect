@@ -34,6 +34,8 @@ import API from "../services/api";
 import AppNavbar from "../components/Navbar";
 import { toast } from "react-toastify";
 import "./EventDetails.css";
+import ConfettiEffect from "../components/ConfettiEffect";
+import BookingStepper from "../components/BookingStepper";
 
 
 export default function EventDetails() {
@@ -46,6 +48,8 @@ export default function EventDetails() {
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState(null);
   const [bookingErrors, setBookingErrors] = useState({});
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [bookingStep, setBookingStep] = useState(0);
   
   const [bookingForm, setBookingForm] = useState({
     eventDate: "",
@@ -408,9 +412,10 @@ export default function EventDetails() {
       
       await API.post("/booking/create", bookingData);
       toast.success("Booking request sent successfully! The manager will review your request.");
+      setShowConfetti(true);
       setShowBookingModal(false);
       setShowCustomizeModal(false);
-      navigate("/customer/bookings");
+      setTimeout(() => navigate("/customer/bookings"), 2000);
     } catch (err) {
       console.error("Booking error:", err);
       toast.error(err.response?.data?.message || "Failed to create booking");
@@ -523,6 +528,7 @@ export default function EventDetails() {
   return (
     <>
       <AppNavbar />
+      <ConfettiEffect trigger={showConfetti} />
       
       <div className="event-details-page">
         <Container className="py-4">
@@ -1047,7 +1053,8 @@ export default function EventDetails() {
           <Modal.Title>✨ Customize Your Event</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Alert variant="info">
+          <BookingStepper currentStep={2} />
+          <Alert variant="info" className="mt-3">
             <FaInfoCircle className="me-2" />
             Enable the services you want, browse the menu, and select/deselect individual items.
           </Alert>
