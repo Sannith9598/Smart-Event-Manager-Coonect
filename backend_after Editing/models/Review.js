@@ -32,7 +32,6 @@ module.exports = (sequelize, DataTypes) => {
       { fields: ["eventId"] },
       { fields: ["userId"] },
       { unique: true, fields: ["userId", "managerId"] },
-      { unique: true, fields: ["userId", "eventId", "bookingId"] },
     ],
   });
 

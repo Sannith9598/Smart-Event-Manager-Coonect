@@ -204,7 +204,10 @@ const ensureAdminExists = async () => {
 const startServer = async () => {
   if (process.env.NODE_ENV === "production") {
     await db.sequelize.authenticate();
-    console.log("Database connected (production - no sync)");
+    console.log("Database connected (production)");
+    // Sync schema to add any new columns (safe for adding columns, won't drop data)
+    await db.sequelize.sync({ alter: true });
+    console.log("Database schema synced");
   } else {
     await db.sequelize.sync({ alter: true });
     console.log("Database synced (development)");
