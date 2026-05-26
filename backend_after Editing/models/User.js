@@ -1,3 +1,5 @@
+// Core user account - handles customers, managers, and admins.
+// Password is excluded from queries by default via defaultScope.
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define("User", {
     name: {

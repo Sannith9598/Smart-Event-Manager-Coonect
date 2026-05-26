@@ -29,6 +29,7 @@ import {
 } from "react-icons/fa";
 import API from "../../services/api";
 
+// Admin view for managing customers — search, block/unblock, and view booking history
 export default function ViewCustomers() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -93,6 +94,7 @@ export default function ViewCustomers() {
     }
   };
 
+  // Blocks or unblocks a customer account
   const handleUpdateStatus = async (customerId, newStatus) => {
     if (!window.confirm(`Are you sure you want to ${newStatus} this customer?`)) {
       return;
@@ -109,6 +111,7 @@ export default function ViewCustomers() {
     }
   };
 
+  // Opens the detail modal with full customer info and booking history
   const handleViewDetails = async (customer) => {
     try {
       const response = await API.get(`/admin/customers/${customer.id}/details`);

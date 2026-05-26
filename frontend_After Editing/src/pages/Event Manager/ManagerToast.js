@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+// Auto-dismissing toast notification for success/error messages
 export default function ManagerToast({ toast, setToast }) {
   useEffect(() => {
     if (toast.show) {

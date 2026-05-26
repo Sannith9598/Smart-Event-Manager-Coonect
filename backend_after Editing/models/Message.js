@@ -1,3 +1,5 @@
+// Chat messages between a customer and manager within a booking.
+// Each message is tied to a specific booking conversation.
 module.exports = (sequelize, DataTypes) => {
   const Message = sequelize.define("Message", {
     id: {

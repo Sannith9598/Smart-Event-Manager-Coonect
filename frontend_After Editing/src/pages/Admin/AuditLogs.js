@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { FaHistory, FaUser, FaClock, FaShieldAlt, FaGlobe } from "react-icons/fa";
 import API from "../../services/api";
 
+// Displays paginated admin audit logs with action badges and IP tracking
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +26,7 @@ export default function AuditLogs() {
     fetchAuditLogs(1);
   }, []);
 
+  // Fetches a page of audit logs from the API
   const fetchAuditLogs = async (page) => {
     try {
       setLoading(true);

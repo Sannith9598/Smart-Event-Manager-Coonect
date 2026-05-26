@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 import API from "../../services/api";
 
+// Modal showing full booking details including add-ons, pricing, and special request charges
 export default function CustomizationDetailsModal({
   show,
   onHide,

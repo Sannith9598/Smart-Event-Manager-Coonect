@@ -1,3 +1,5 @@
+// An event service listing created by a manager.
+// Holds pricing, availability, customization options, and review stats.
 module.exports = (sequelize, DataTypes) => {
   const Event = sequelize.define("Event", {
     id: {
@@ -152,6 +154,11 @@ module.exports = (sequelize, DataTypes) => {
     Event.hasMany(models.Booking, {
       foreignKey: "eventId",
       as: 'bookings'
+    });
+
+    Event.hasMany(models.Review, {
+      foreignKey: "eventId",
+      as: 'reviews'
     });
   };
 

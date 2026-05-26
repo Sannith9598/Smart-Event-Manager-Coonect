@@ -14,6 +14,7 @@ import QuickFilters from "../components/QuickFilters";
 import RecentlyViewed, { addToRecentlyViewed } from "../components/RecentlyViewed";
 import PageTransition from "../components/PageTransition";
 
+// Landing page with hero search, trending events carousel, and manager bubbles
 export default function Home() {
   const { darkMode } = useTheme();
   const [verifiedManagers, setVerifiedManagers] = useState([]);
@@ -48,6 +49,7 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Searches verified managers by name, event type, phone, or location
   const handleSearch = async (query) => {
     if (!query.trim()) return;
     try {
@@ -74,6 +76,7 @@ export default function Home() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  // Fetches all verified managers for the story bubbles section
   const fetchVerifiedManagers = async () => {
     try {
       const response = await API.get("/admin/verified");
@@ -85,6 +88,7 @@ export default function Home() {
     }
   };
 
+  // Fetches the most-booked events for the trending carousel
   const fetchTrendingEvents = async () => {
     try {
       const response = await API.get("/event/trending?limit=15");
@@ -116,6 +120,7 @@ export default function Home() {
     }
   };
 
+  // Navigates to the manager's public profile and tracks the view
   const handleManagerClick = (manager) => {
     addToRecentlyViewed({
       id: manager.id,
@@ -126,6 +131,7 @@ export default function Home() {
     navigate(`/manager/${manager.id}/profile`);
   };
 
+  // Navigates to the event details page and tracks the view
   const handleBookNow = (event) => {
     addToRecentlyViewed({
       id: event.id,

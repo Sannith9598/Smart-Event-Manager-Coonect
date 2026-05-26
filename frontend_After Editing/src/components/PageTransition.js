@@ -12,6 +12,7 @@ const pageTransition = {
   duration: 0.3,
 };
 
+// Wraps page content with a fade + slide animation on route transitions
 export default function PageTransition({ children }) {
   return (
     <motion.div

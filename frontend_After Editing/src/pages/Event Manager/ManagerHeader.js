@@ -1,6 +1,7 @@
 import { Button } from "react-bootstrap";
 import { FaPlus, FaCheckCircle, FaClock, FaExclamationTriangle } from "react-icons/fa";
 
+// Dashboard header showing the manager's name, verification badge, and add event button
 export default function ManagerHeader({ manager, verificationStatus, canAddEvents, onVerify }) {
   const renderVerificationBadge = () => {
     if (!verificationStatus) return null;

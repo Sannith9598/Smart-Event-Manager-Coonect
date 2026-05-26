@@ -14,6 +14,7 @@ function StarRating({ value = 0 }) {
   );
 }
 
+// Displays a single event manager card with rating, location, and price
 export default function ManagerCard({ data }) {
   const navigate = useNavigate();
 

@@ -1,3 +1,5 @@
+// Tracks failed login attempts per email for rate limiting.
+// Locks the account temporarily after too many failures.
 module.exports = (sequelize, DataTypes) => {
   const LoginAttempt = sequelize.define("LoginAttempt", {
     id: {

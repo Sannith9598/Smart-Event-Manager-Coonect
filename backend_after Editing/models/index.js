@@ -1,3 +1,6 @@
+// Central model registry - loads all Sequelize models and sets up
+// their relationships (associations). This is the single source of
+// truth for how tables relate to each other.
 const { Sequelize } = require("sequelize");
 const sequelize = require("../config/db");
 
@@ -49,6 +52,9 @@ db.Review.belongsTo(db.EventManager, { foreignKey: "managerId" });
 
 db.User.hasMany(db.Review, { foreignKey: "userId", as: "reviews", onDelete: "CASCADE" });
 db.Review.belongsTo(db.User, { foreignKey: "userId", as: "user" });
+
+db.Event.hasMany(db.Review, { foreignKey: "eventId", as: "reviews", onDelete: "CASCADE" });
+db.Review.belongsTo(db.Event, { foreignKey: "eventId", as: "event" });
 
 // ─── Message relations ───────────────────────────────────────────────────────
 db.Booking.hasMany(db.Message, { foreignKey: "bookingId", as: "messages", onDelete: "CASCADE" });

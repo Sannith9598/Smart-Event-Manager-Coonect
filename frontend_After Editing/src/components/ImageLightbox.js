@@ -2,15 +2,18 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes, FaChevronLeft, FaChevronRight, FaSearchPlus, FaSearchMinus } from "react-icons/fa";
 
+// Renders a fullscreen image/video lightbox with keyboard nav, zoom controls, and swipe between items
 export default function ImageLightbox({ images, initialIndex = 0, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoom, setZoom] = useState(1);
 
+  // Cycles to the previous image and resets zoom level
   const handlePrev = useCallback(() => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
     setZoom(1);
   }, [images.length]);
 
+  // Cycles to the next image and resets zoom level
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
     setZoom(1);

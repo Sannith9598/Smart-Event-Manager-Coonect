@@ -4,6 +4,7 @@ import { FaStar, FaReply } from "react-icons/fa";
 import { motion } from "framer-motion";
 import API from "../../services/api";
 
+// Reviews tab showing customer ratings with the ability to respond to each review
 export default function ReviewsTab({ showToast }) {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +48,7 @@ export default function ReviewsTab({ showToast }) {
     }
   };
 
+  // Submits the manager's reply to a customer review
   const handleRespond = async (reviewId) => {
     if (!responseText.trim()) {
       showToast("Please enter a response", "warning");

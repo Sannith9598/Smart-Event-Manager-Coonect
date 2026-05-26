@@ -1,3 +1,5 @@
+// Manager verification requests submitted for admin review.
+// Contains business details, portfolio, and approval/rejection status.
 module.exports = (sequelize, DataTypes) => {
   const Verification = sequelize.define("Verification", {
     id: {

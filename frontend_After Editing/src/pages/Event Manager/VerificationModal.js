@@ -16,6 +16,7 @@ import Step1BusinessInfo from "./Step1BusinessInfo";
 import Step2PastEvents from "./Step2PastEvents";
 import "./VerificationModal.css";
 
+// Multi-step verification modal for submitting business info and past event portfolio
 export default function VerificationModal({ show, onHide, onVerified }) {
   const [formData, setFormData] = useState({
     businessName: "",
@@ -95,6 +96,7 @@ export default function VerificationModal({ show, onHide, onVerified }) {
     return !errors.pastEvents && !errors.media;
   };
 
+  // Validates and submits the full verification request to the API
   const handleSubmit = async () => {
     const isStep2Valid = validateStep2();
     if (!isStep2Valid) {

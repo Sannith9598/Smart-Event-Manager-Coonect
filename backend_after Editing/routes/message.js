@@ -13,7 +13,7 @@ const messageLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Get messages for a booking
+// GET /booking/:bookingId — Returns all messages for a booking and marks unread ones as read
 router.get("/booking/:bookingId", auth, async (req, res) => {
   try {
     const booking = await db.Booking.findByPk(req.params.bookingId);
@@ -54,7 +54,7 @@ router.get("/booking/:bookingId", auth, async (req, res) => {
   }
 });
 
-// Send a message
+// POST /send — Sends a message within a booking conversation and notifies the receiver
 router.post("/send", auth, messageLimiter, async (req, res) => {
   try {
     const { bookingId, message } = req.body;
@@ -120,7 +120,7 @@ router.post("/send", auth, messageLimiter, async (req, res) => {
   }
 });
 
-// Get unread message count
+// GET /unread-count — Returns the total number of unread messages for the logged-in user
 router.get("/unread-count", auth, async (req, res) => {
   try {
     const count = await db.Message.count({

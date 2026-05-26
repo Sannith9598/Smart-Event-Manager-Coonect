@@ -1,3 +1,4 @@
+// A user's saved/favorited event. Simple join table between users and events.
 module.exports = (sequelize, DataTypes) => {
   const Favorite = sequelize.define("Favorite", {
     id: {

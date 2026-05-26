@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Lightweight confetti burst effect
+// Fires a burst of animated confetti particles when the trigger prop flips to true
 export default function ConfettiEffect({ trigger, duration = 2500 }) {
   const [particles, setParticles] = useState([]);
 

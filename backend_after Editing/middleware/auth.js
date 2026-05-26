@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
 
+// Protects routes by verifying the JWT token from the Authorization header.
+// Attaches the decoded user payload to req.user for downstream handlers.
 module.exports = (req, res, next) => {
   const authHeader = req.headers["authorization"];
 

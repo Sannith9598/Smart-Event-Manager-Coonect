@@ -1,6 +1,7 @@
 import { Spinner, Badge } from "react-bootstrap";
 import { FaPlay, FaCheckCircle } from "react-icons/fa";
 
+// Instagram-style grid of past event thumbnails with click-to-expand
 export default function MediaGrid({ events, onEventClick, loading, hasMore, onLoadMore }) {
   if (!events || events.length === 0) {
     return (

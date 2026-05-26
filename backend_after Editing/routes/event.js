@@ -4,6 +4,7 @@ const auth = require("../middleware/auth");
 const { cloudinary } = require("../config/cloudinary");
 
 
+// POST /add-event — Creates a new event listing (manager must be verified)
 router.post("/add-event", auth, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -77,6 +78,7 @@ router.post("/add-event", auth, async (req, res) => {
   }
 });
 
+// GET /all-events — Public endpoint that returns paginated, filterable, sortable event listings
 router.get("/all-events", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -159,6 +161,7 @@ router.get("/all-events", async (req, res) => {
   }
 });
 
+// GET /all-events/:id — Public endpoint that returns full details for a single event
 router.get("/all-events/:id", async (req, res) => {
   try {
     const event = await db.Event.findOne({
@@ -181,6 +184,7 @@ router.get("/all-events/:id", async (req, res) => {
 });
 
 
+// GET /events — Returns all events owned by the logged-in manager
 router.get("/events", auth, async (req, res) => {
   try {
     const events = await db.Event.findAll({
@@ -200,6 +204,7 @@ router.get("/events", auth, async (req, res) => {
 });
 
 
+// GET /manager/:userId — Public endpoint that returns available events for a specific manager
 router.get("/manager/:userId", async (req, res) => {
   try {
     const events = await db.Event.findAll({
@@ -242,6 +247,7 @@ router.get("/manager/:userId", async (req, res) => {
 });
 
 
+// PUT /edit-event/:id — Updates an existing event and cleans up removed images from Cloudinary
 router.put("/edit-event/:id", auth, async (req, res) => {
   try {
     const event = await db.Event.findByPk(req.params.id);
@@ -311,6 +317,7 @@ router.put("/edit-event/:id", auth, async (req, res) => {
   }
 });
 
+// PUT /toggle-status/:id — Toggles an event between available and unavailable
 router.put("/toggle-status/:id", auth, async (req, res) => {
   try {
     const event = await db.Event.findByPk(req.params.id);
@@ -339,6 +346,7 @@ router.put("/toggle-status/:id", auth, async (req, res) => {
 });
 
 
+// DELETE /event/:id — Permanently deletes an event (blocked if it has existing bookings)
 router.delete("/event/:id", auth, async (req, res) => {
   try {
     const event = await db.Event.findByPk(req.params.id);
@@ -399,7 +407,7 @@ router.delete("/event/:id", auth, async (req, res) => {
 });
 
 
-// Update event available dates (calendar)
+// PUT /availability/:id — Updates the available dates calendar for an event
 router.put("/availability/:id", auth, async (req, res) => {
   try {
     const event = await db.Event.findByPk(req.params.id);
@@ -429,7 +437,7 @@ router.put("/availability/:id", auth, async (req, res) => {
   }
 });
 
-// Get booked dates for an event
+// GET /booked-dates/:id — Returns dates that already have pending/confirmed bookings for an event
 router.get("/booked-dates/:id", async (req, res) => {
   try {
     const bookings = await db.Booking.findAll({
@@ -450,7 +458,7 @@ router.get("/booked-dates/:id", async (req, res) => {
 });
 
 
-// Trending events - most booked events across all managers
+// GET /trending — Returns the most-booked events across all managers, sorted by popularity
 router.get("/trending", async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit) || 10, 100);
@@ -500,7 +508,7 @@ router.get("/trending", async (req, res) => {
   }
 });
 
-// Manager analytics/stats endpoint (#5)
+// GET /analytics — Returns dashboard stats for the logged-in manager (revenue, bookings, trends)
 router.get("/analytics", auth, async (req, res) => {
   try {
     const managerId = req.user.id;

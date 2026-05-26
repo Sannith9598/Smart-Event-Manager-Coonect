@@ -34,6 +34,7 @@ const DEFAULT_SERVICE_ICONS = {
 // Default services that come pre-configured
 const DEFAULT_SERVICES = ["catering", "decoration", "photography", "music", "transport"];
 
+// Modal for creating or editing an event with pricing, images, and detailed add-on services
 export default function AddEditEventModal({ show, onHide, editingEvent, onSuccess, showToast }) {
   const [eventForm, setEventForm] = useState(getEmptyForm());
   const [uploading, setUploading] = useState(false);
@@ -272,6 +273,7 @@ export default function AddEditEventModal({ show, onHide, editingEvent, onSucces
   };
   const clearFieldError = (f) => { if (errors[f]) setErrors({ ...errors, [f]: "" }); };
 
+  // Validates required fields and saves the event (create or update)
   const handleSubmit = async () => {
     if (!validate()) return;
     try {

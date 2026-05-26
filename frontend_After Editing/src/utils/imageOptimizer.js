@@ -1,14 +1,4 @@
-/**
- * Image Optimization Utility (#10)
- * Generates optimized Cloudinary URLs with responsive transformations
- */
-
-/**
- * Get optimized image URL from Cloudinary
- * @param {string} imageUrl - Original Cloudinary image URL
- * @param {object} options - Transformation options
- * @returns {string} Optimized image URL
- */
+// Returns a Cloudinary URL with width/quality/format transformations applied
 export const getOptimizedUrl = (imageUrl, options = {}) => {
   if (!imageUrl || !imageUrl.includes("cloudinary")) return imageUrl;
 
@@ -18,22 +8,13 @@ export const getOptimizedUrl = (imageUrl, options = {}) => {
   return imageUrl.replace("/upload/", `/upload/${transformation}/`);
 };
 
-/**
- * Get thumbnail URL
- * @param {string} imageUrl - Original image URL
- * @param {number} width - Thumbnail width (default 300)
- * @returns {string} Thumbnail URL
- */
+// Returns a square cropped thumbnail URL at the given width (default 300px)
 export const getThumbnailUrl = (imageUrl, width = 300) => {
   if (!imageUrl || !imageUrl.includes("cloudinary")) return imageUrl;
   return imageUrl.replace("/upload/", `/upload/w_${width},h_${width},c_fill,q_auto,f_auto/`);
 };
 
-/**
- * Get responsive image srcSet for different screen sizes
- * @param {string} imageUrl - Original image URL
- * @returns {string} srcSet string for responsive images
- */
+// Builds a srcSet string with multiple widths for responsive <img> elements
 export const getResponsiveSrcSet = (imageUrl) => {
   if (!imageUrl || !imageUrl.includes("cloudinary")) return "";
 

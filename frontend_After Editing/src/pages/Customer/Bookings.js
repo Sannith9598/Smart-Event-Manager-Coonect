@@ -29,6 +29,7 @@ import { generateInvoicePDF } from "../../utils/generateInvoice";
 import { toast } from "react-toastify";
 import ConfettiEffect from "../../components/ConfettiEffect";
 
+// Renders the customer's booking history with status filters and invoice downloads
 export default function Bookings() {
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -61,6 +62,7 @@ export default function Bookings() {
     }
   }, []);
 
+  // Fetches all bookings for the logged-in customer from the API
   const fetchBookings = async () => {
     try {
       setLoading(true);
@@ -86,6 +88,7 @@ export default function Bookings() {
     setShowDetailModal(true);
   };
 
+  // Opens the review modal for a completed booking
   const handleOpenReview = (booking) => {
     setReviewBooking(booking);
     setReviewRating(0);
@@ -93,6 +96,7 @@ export default function Bookings() {
     setShowReviewModal(true);
   };
 
+  // Submits a star rating and comment for the event and manager
   const handleSubmitReview = async () => {
     if (!reviewRating || reviewRating < 1) {
       toast.error("Please select a rating");
@@ -100,23 +104,31 @@ export default function Bookings() {
     }
     setSubmittingReview(true);
     try {
-      // The review endpoint needs the EventManager profile ID (not the User ID)
-      // Fetch all managers and find the one matching this booking's managerId (User ID)
-      const profileRes = await API.get("/manager");
-      const profiles = profileRes.data || [];
-      const matchedProfile = profiles.find(p => p.userId === reviewBooking.managerId);
-
-      if (!matchedProfile) {
-        toast.error("Could not find manager profile. Please try again.");
-        setSubmittingReview(false);
-        return;
-      }
-
-      await API.post("/review", {
-        managerId: matchedProfile.id,
+      // Submit event review
+      await API.post("/review/event", {
+        eventId: reviewBooking.eventId,
+        bookingId: reviewBooking.id,
         rating: reviewRating,
         comment: reviewComment.trim() || null,
       });
+
+      // Also submit manager review
+      try {
+        const profileRes = await API.get("/manager");
+        const profiles = profileRes.data || [];
+        const matchedProfile = profiles.find(p => p.userId === reviewBooking.managerId);
+
+        if (matchedProfile) {
+          await API.post("/review", {
+            managerId: matchedProfile.id,
+            rating: reviewRating,
+            comment: reviewComment.trim() || null,
+          });
+        }
+      } catch (managerReviewErr) {
+        // Manager review might fail if already reviewed - that's okay
+        console.log("Manager review skipped:", managerReviewErr.response?.data?.message);
+      }
 
       toast.success("Review submitted successfully! Thank you for your feedback.");
       setShowReviewModal(false);
@@ -132,6 +144,7 @@ export default function Bookings() {
     }
   };
 
+  // Cancels a pending booking after user confirmation
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) return;
     setCancelling(true);
@@ -164,6 +177,7 @@ export default function Bookings() {
     }
   };
 
+  // Generates and downloads a PDF invoice for a confirmed/completed booking
   const handleDownloadInvoice = async (booking) => {
     setDownloading(true);
     try {
@@ -553,9 +567,21 @@ export default function Bookings() {
                           <span>+{formatCurrency((selectedBooking.guests - (selectedBooking.event.maxGuests || 0)) * (selectedBooking.event.perExtraGuestPrice || 0))}</span>
                         </div>
                       )}
+                      {parseFloat(selectedBooking.specialRequestPrice || 0) > 0 && (
+                        <div className="price-row-modern">
+                          <span>Special Request Charges</span>
+                          <span>+{formatCurrency(selectedBooking.specialRequestPrice)}</span>
+                        </div>
+                      )}
+                      {parseFloat(selectedBooking.discountAmount || 0) > 0 && (
+                        <div className="price-row-modern" style={{ background: '#fef3c7', borderRadius: '8px', padding: '8px 12px' }}>
+                          <span style={{ color: '#92400e' }}>🎉 Discount{selectedBooking.discountReason ? ` (${selectedBooking.discountReason})` : ''}</span>
+                          <span style={{ color: '#dc2626', fontWeight: 'bold' }}>-{formatCurrency(selectedBooking.discountAmount)}</span>
+                        </div>
+                      )}
                       <div className="price-row-modern price-total-modern">
                         <strong>Total Amount</strong>
-                        <strong>{formatCurrency(selectedBooking.totalPrice)}</strong>
+                        <strong>{formatCurrency(selectedBooking.finalPrice || selectedBooking.totalPrice)}</strong>
                       </div>
                     </div>
                   </div>
@@ -677,8 +703,10 @@ export default function Bookings() {
             }
 
             const subtotal = basePrice + extraGuestsCost + addonsTotal + customAddonsTotal + serviceItemsTotal + specialRequestPrice;
-            const gstAmount = subtotal * 0.05;
-            const grandTotal = subtotal + gstAmount;
+            const discountAmount = parseFloat(invoiceData.discountAmount) || 0;
+            const afterDiscount = subtotal - discountAmount;
+            const gstAmount = afterDiscount * 0.05;
+            const grandTotal = afterDiscount + gstAmount;
 
             return (
               <div className="invoice-preview" id="invoice-preview">
@@ -750,6 +778,12 @@ export default function Bookings() {
                           <td style={{ padding: '10px' }}><strong>Subtotal</strong></td>
                           <td style={{ padding: '10px', textAlign: 'right' }}><strong>{formatCurrency(subtotal)}</strong></td>
                         </tr>
+                        {discountAmount > 0 && (
+                          <tr style={{ background: '#fef3c7', borderBottom: '1px solid #e5e7eb' }}>
+                            <td style={{ padding: '10px', color: '#92400e' }}>🎉 Discount{invoiceData.discountReason ? ` (${invoiceData.discountReason})` : ''}</td>
+                            <td style={{ padding: '10px', textAlign: 'right', color: '#dc2626', fontWeight: 'bold' }}>-{formatCurrency(discountAmount)}</td>
+                          </tr>
+                        )}
                         <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
                           <td style={{ padding: '10px' }}>GST (5%)</td>
                           <td style={{ padding: '10px', textAlign: 'right' }}>{formatCurrency(gstAmount)}</td>

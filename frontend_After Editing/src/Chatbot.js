@@ -110,6 +110,7 @@ function renderInline(text) {
   return parts.length > 0 ? parts : text;
 }
 
+// Floating chatbot widget that provides AI-powered event planning advice
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -137,6 +138,7 @@ const Chatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Sends the user's message to the chatbot API and displays the response
   const handleSend = async () => {
     if (!input.trim()) return;
     
@@ -168,12 +170,14 @@ const Chatbot = () => {
     }
   };
 
+  // Triggers send when the user presses Enter
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleSend();
     }
   };
 
+  // Handles clicking a suggested follow-up question chip
   const handleSuggestionClick = (suggestion) => {
     setInput(suggestion);
     // Auto-send the suggestion

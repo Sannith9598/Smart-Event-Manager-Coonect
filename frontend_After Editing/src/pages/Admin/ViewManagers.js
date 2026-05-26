@@ -37,6 +37,7 @@ import {
 } from "react-icons/fa";
 import API from "../../services/api";
 
+// Admin view for managing event managers — verify, unverify, and view full profiles
 export default function ViewManagers() {
   const [managers, setManagers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -88,6 +89,7 @@ export default function ViewManagers() {
     }
   };
 
+  // Toggles a manager's verified status
   const handleVerifyManager = async (managerId, isVerified) => {
     if (!window.confirm(`Are you sure you want to ${isVerified ? "verify" : "unverify"} this manager?`)) {
       return;
@@ -104,6 +106,7 @@ export default function ViewManagers() {
     }
   };
 
+  // Opens the detail modal with full manager profile, events, and bookings
   const handleViewDetails = async (manager) => {
     try {
       const response = await API.get(`/admin/managers/${manager.id}/details`);

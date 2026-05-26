@@ -9,6 +9,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 const MAX_MEDIA_PER_EVENT = 10;
 
+// Form modal for adding or editing a past event with media uploads
 export default function AddPastEventForm({ show, onHide, onSuccess, editEvent, editIndex }) {
   const isEditing = editEvent !== undefined && editEvent !== null;
 

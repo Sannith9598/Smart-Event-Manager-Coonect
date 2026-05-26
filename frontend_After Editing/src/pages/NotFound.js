@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import AppNavbar from "../components/Navbar";
 
+// 404 page shown when a route doesn't match any defined paths
 export default function NotFound() {
   const navigate = useNavigate();
 

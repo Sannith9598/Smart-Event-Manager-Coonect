@@ -23,6 +23,7 @@ import ViewManagers from "./ViewManagers";
 import AuditLogs from "./AuditLogs";
 import { FaUsers, FaUserTie, FaHistory, FaDownload, FaShieldAlt, FaCheckCircle, FaTimesCircle, FaClock } from "react-icons/fa";
 
+// Admin dashboard with verification management, user tables, and platform stats
 export default function AdminDashboard() {
   const [pendingVerifications, setPendingVerifications] = useState([]);
   const [approvedVerifications, setApprovedVerifications] = useState([]);
@@ -48,6 +49,7 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  // Loads all verification requests and groups them by status
   const fetchAllVerifications = async () => {
     try {
       const res = await API.get("/admin/verifications");
@@ -81,6 +83,7 @@ export default function AdminDashboard() {
     }
   };
 
+  // Approves a manager's verification request
   const handleApprove = async (id) => {
     if (!window.confirm("Approve this verification request?")) return;
 
@@ -100,6 +103,7 @@ export default function AdminDashboard() {
     }
   };
 
+  // Rejects a verification request with a reason
   const handleReject = async (id) => {
     if (!rejectionReason.trim()) {
       toast.warning("Please provide rejection reason");
@@ -130,6 +134,7 @@ export default function AdminDashboard() {
     setShowModal(true);
   };
 
+  // Downloads all customer data as a CSV file
   const handleExportCustomers = async () => {
     try {
       const response = await API.get("/admin/export/customers", {
@@ -149,6 +154,7 @@ export default function AdminDashboard() {
     }
   };
 
+  // Downloads all booking data as a CSV file
   const handleExportBookings = async () => {
     try {
       const response = await API.get("/admin/export/bookings", {

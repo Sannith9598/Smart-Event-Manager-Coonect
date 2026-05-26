@@ -5,6 +5,7 @@ const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || "mailserviceforproject@gmail.com";
 const FROM_NAME = process.env.FROM_NAME || "EventHub";
 
+// Low-level email sender — wraps the Brevo HTTP API so the rest of the app doesn't deal with fetch details
 const sendEmail = async ({ to, subject, html, text }) => {
   // Brevo requires textContent to be a non-empty string
   const textContent = text || subject || "EventHub Notification";
@@ -39,6 +40,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
   return response.json();
 };
 
+// Sends a booking confirmation email to the customer with event details and pricing
 const sendBookingConfirmation = async (customerEmail, customerName, booking, event, manager) => {
   const textContent = `Booking Confirmed!\n\nHello ${customerName},\n\nYour booking has been confirmed.\n\nEvent: ${event?.name || 'Event'}\nDate: ${new Date(booking.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}\nGuests: ${booking.guests || 1}\nTotal Price: ₹${booking.totalPrice?.toLocaleString() || 0}\nManager: ${manager?.name || 'Event Manager'}\n\n— EventHub Team`;
 
@@ -69,6 +71,7 @@ const sendBookingConfirmation = async (customerEmail, customerName, booking, eve
   await sendEmail({ to: customerEmail, subject: `✅ Booking Confirmed - ${event?.name || 'Your Event'}`, html, text: textContent });
 };
 
+// Notifies the customer that their booking was rejected, with an optional reason from the manager
 const sendBookingRejection = async (customerEmail, customerName, booking, event, reason) => {
   const textContent = `Booking Update\n\nHello ${customerName},\n\nUnfortunately, your booking request could not be confirmed.\n\nEvent: ${event?.name || 'Event'}\nDate: ${new Date(booking.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}${reason ? `\nReason: ${reason}` : ''}\n\n— EventHub Team`;
 
@@ -95,6 +98,7 @@ const sendBookingRejection = async (customerEmail, customerName, booking, event,
   await sendEmail({ to: customerEmail, subject: `Booking Update - ${event?.name || 'Your Event'}`, html, text: textContent });
 };
 
+// Alerts the event manager that a new booking request came in and needs their attention
 const sendNewBookingToManager = async (managerEmail, managerName, booking, event, customer) => {
   const textContent = `New Booking Request!\n\nHello ${managerName},\n\nYou have a new booking request.\n\nCustomer: ${customer?.name || 'Customer'}\nEvent: ${event?.name || 'Event'}\nDate: ${new Date(booking.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}\nGuests: ${booking.guests || 1}\nTotal Price: ₹${booking.totalPrice?.toLocaleString() || 0}\n\n— EventHub Team`;
 
@@ -128,6 +132,7 @@ const sendNewBookingToManager = async (managerEmail, managerName, booking, event
   await sendEmail({ to: managerEmail, subject: `📋 New Booking Request - ${event?.name || 'Event'}`, html, text: textContent });
 };
 
+// Lets the customer know their event is done and nudges them to leave a review
 const sendBookingCompleted = async (customerEmail, customerName, booking, event) => {
   const textContent = `Event Completed!\n\nHello ${customerName},\n\nYour event has been marked as completed.\n\nEvent: ${event?.name || 'Event'}\nDate: ${new Date(booking.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}\n\n— EventHub Team`;
 

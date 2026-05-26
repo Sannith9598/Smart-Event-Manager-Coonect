@@ -15,6 +15,7 @@ import ManagerToast from './ManagerToast'
 import PastEventsTab from "./PastEventsTab";
 import ReviewsTab from "./ReviewsTab";
 
+// Main manager dashboard with events, bookings, analytics, and verification flow
 export default function ManagerDashboard() {
   const [manager, setManager] = useState(null);
   const [events, setEvents] = useState([]);
@@ -51,6 +52,7 @@ export default function ManagerDashboard() {
     initDashboard();
   }, []);
 
+  // Fetches the manager's current verification status from the API
   const fetchVerificationStatus = async () => {
     try {
       const res = await API.get("/verification/verification-status");
@@ -61,6 +63,7 @@ export default function ManagerDashboard() {
     }
   };
 
+  // Fetches all events created by this manager
   const fetchEvents = async () => {
     try {
       setLoading(true);
@@ -73,6 +76,7 @@ export default function ManagerDashboard() {
     }
   };
 
+  // Fetches all bookings for this manager's events
   const fetchBookings = async () => {
     try {
       const res = await API.get("/booking/manager/bookings");

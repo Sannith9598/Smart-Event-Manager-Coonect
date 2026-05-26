@@ -1,3 +1,5 @@
+// Represents a customer's booking for an event service.
+// Tracks pricing, status, add-ons, and links the customer to the event/manager.
 module.exports = (sequelize, DataTypes) => {
   const Booking = sequelize.define("Booking", {
     id: {
@@ -51,9 +53,20 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0,
     },
 
-    // Final price including special request charges (totalPrice + specialRequestPrice)
+    // Final price including special request charges (totalPrice + specialRequestPrice - discountAmount)
     finalPrice: {
       type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+
+    // Discount applied by manager
+    discountAmount: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0,
+    },
+
+    discountReason: {
+      type: DataTypes.STRING,
       allowNull: true,
     },
 

@@ -1,6 +1,7 @@
 import { Row, Col, Card, ProgressBar, Badge } from "react-bootstrap";
 import { FaChartLine, FaRupeeSign, FaCalendarCheck, FaLayerGroup } from "react-icons/fa";
 
+// Inline analytics tab showing booking stats, revenue, and top-performing events
 export default function AnalyticsTab({ events = [], bookings = [] }) {
 
 

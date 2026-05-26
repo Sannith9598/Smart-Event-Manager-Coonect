@@ -13,6 +13,7 @@ const filters = [
   { label: "💐 Anniversary", value: "anniversary" },
 ];
 
+// Renders a horizontally scrollable row of category/filter chips that toggle on click
 export default function QuickFilters({ activeFilter, onFilterChange }) {
   return (
     <div className="quick-filters-container">

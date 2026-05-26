@@ -20,6 +20,7 @@ import {
 import API from "../../services/api";
 import AddEditEventModal from "./AddEditEventModal";
 
+// Events management tab with search, filters, and CRUD actions for event listings
 export default function EventsTab({
   events,
   loading,
@@ -98,6 +99,7 @@ export default function EventsTab({
     return <span className="badge-pro badge-category-general">{label}</span>;
   };
 
+  // Permanently deletes an event after user confirmation
   const deleteEvent = async (id) => {
     if (!window.confirm("Delete this event? This action cannot be undone."))
       return;
@@ -110,6 +112,7 @@ export default function EventsTab({
     }
   };
 
+  // Toggles an event between available and unavailable
   const toggleStatus = async (event) => {
     try {
       await API.put(`/event/toggle-status/${event.id}`);

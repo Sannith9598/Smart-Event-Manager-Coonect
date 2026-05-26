@@ -6,7 +6,7 @@ const auth = require("../middleware/auth");
 const { uploadToCloudinary, cloudinary } = require("../config/cloudinary");
 const multer = require("multer");
 
-// Helper to extract Cloudinary public ID from URL and delete it
+// Helper to extract the Cloudinary public ID from a URL and delete the asset
 const deleteCloudinaryImage = async (imageUrl) => {
   if (!imageUrl || !imageUrl.includes("cloudinary")) return;
   try {
@@ -37,7 +37,7 @@ const upload = multer({
   },
 });
 
-// Get user profile
+// GET / — Returns the logged-in user's profile (includes manager profile if applicable)
 router.get("/", auth, async (req, res) => {
   try {
     const user = await db.User.findByPk(req.user.id);
@@ -62,7 +62,7 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// Update basic profile (name, mobile)
+// PUT /update — Updates the user's name and/or mobile number
 router.put("/update", auth, async (req, res) => {
   try {
     const { name, mobile } = req.body;
@@ -95,7 +95,7 @@ router.put("/update", auth, async (req, res) => {
   }
 });
 
-// Change password
+// PUT /change-password — Changes the user's password after verifying the current one
 router.put("/change-password", auth, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -135,7 +135,7 @@ router.put("/change-password", auth, async (req, res) => {
   }
 });
 
-// Update manager business profile (for verified managers)
+// PUT /manager-profile — Updates the manager's business details (location, description, service areas)
 router.put("/manager-profile", auth, async (req, res) => {
   try {
     if (req.user.role !== "manager") {
@@ -166,7 +166,7 @@ router.put("/manager-profile", auth, async (req, res) => {
   }
 });
 
-// Upload profile photo
+// PUT /photo — Uploads a new profile photo to Cloudinary (replaces the old one)
 router.put("/photo", auth, upload.single("photo"), async (req, res) => {
   try {
     if (!req.file) {
@@ -199,7 +199,7 @@ router.put("/photo", auth, upload.single("photo"), async (req, res) => {
   }
 });
 
-// Remove profile photo
+// DELETE /photo — Removes the user's profile photo from Cloudinary and the database
 router.delete("/photo", auth, async (req, res) => {
   try {
     const user = await db.User.findByPk(req.user.id);
@@ -221,7 +221,7 @@ router.delete("/photo", auth, async (req, res) => {
   }
 });
 
-// Task 5.1: Client profile endpoint (for managers with booking relationship)
+// GET /client/:clientId — Returns a client's profile visible to managers who have a booking with them
 router.get("/client/:clientId", auth, async (req, res) => {
   try {
     // Only managers can view client profiles

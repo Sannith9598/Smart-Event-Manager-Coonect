@@ -3,7 +3,7 @@ const router = require("express").Router();
 const db = require("../models");
 const auth = require("../middleware/auth");
 
-// Get all favorites for current user
+// GET / — Returns all favorited events for the logged-in user
 router.get("/", auth, async (req, res) => {
   try {
     const favorites = await db.Favorite.findAll({
@@ -27,7 +27,7 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// Add event to favorites
+// POST /:eventId — Adds an event to the user's favorites list
 router.post("/:eventId", auth, async (req, res) => {
   try {
     const { eventId } = req.params;
@@ -59,7 +59,7 @@ router.post("/:eventId", auth, async (req, res) => {
   }
 });
 
-// Remove event from favorites
+// DELETE /:eventId — Removes an event from the user's favorites list
 router.delete("/:eventId", auth, async (req, res) => {
   try {
     const { eventId } = req.params;
@@ -79,7 +79,7 @@ router.delete("/:eventId", auth, async (req, res) => {
   }
 });
 
-// Check if event is favorited
+// GET /check/:eventId — Quick check if a specific event is in the user's favorites
 router.get("/check/:eventId", auth, async (req, res) => {
   try {
     const { eventId } = req.params;

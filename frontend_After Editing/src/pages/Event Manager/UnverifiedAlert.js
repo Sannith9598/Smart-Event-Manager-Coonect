@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { FaShieldAlt, FaCheckCircle, FaSearch, FaStar, FaArrowRight } from "react-icons/fa";
 
+// Prompt shown to unverified managers explaining the benefits of verification
 export default function UnverifiedAlert({ onVerify }) {
   return (
     <motion.div

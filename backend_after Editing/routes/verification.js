@@ -6,7 +6,7 @@ const auth = require("../middleware/auth");
 const { cloudinary, uploadVerificationImage, uploadToCloudinary, uploadMediaToCloudinary, uploadMediaFile } = require("../config/cloudinary");
 
 
-// Task 2.1: Media upload endpoint for verification
+// POST /upload-media — Handles image/video uploads for verification submissions (with size limits)
 router.post("/upload-media", auth, uploadMediaFile, async (req, res) => {
   try {
     if (!req.file) {
@@ -87,6 +87,7 @@ router.post("/upload-media", auth, uploadMediaFile, async (req, res) => {
 });
 
 
+// POST /submit-verification — Submits a manager's verification request with business details and past events
 router.post("/submit-verification", auth, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -254,6 +255,7 @@ router.post("/submit-verification", auth, async (req, res) => {
   }
 });
 
+// POST /upload-verification-image — Uploads a single image for the verification form
 router.post("/upload-verification-image", auth, uploadVerificationImage, async (req, res) => {
   try {
     if (!req.file) {
@@ -281,6 +283,7 @@ router.post("/upload-verification-image", auth, uploadVerificationImage, async (
   }
 });
 
+// GET /admin/verifications — Returns all verification requests for admin review
 router.get("/admin/verifications", auth, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -314,6 +317,7 @@ router.get("/admin/verifications", auth, async (req, res) => {
   }
 });
 
+// GET /verification-status — Returns the current verification status for the logged-in manager
 router.get("/verification-status", auth, async (req, res) => {
   try {
     const userId = req.user.id;

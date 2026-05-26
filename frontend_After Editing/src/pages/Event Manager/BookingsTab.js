@@ -32,6 +32,7 @@ import BookingConfirmationModal from "./BookingConfirmationModal";
 import CustomizationDetailsModal from "./CustomizationDetailsModal";
 import ClientProfileModal from "./ClientProfileModal";
 
+// Bookings management tab with confirm, reject, complete, and invoice actions
 export default function BookingsTab({
   bookings,
   fetchBookings,
@@ -143,6 +144,7 @@ export default function BookingsTab({
     setRejectReason("");
   };
 
+  // Marks a confirmed booking as completed so the customer can download the invoice
   const handleCompleteBooking = async (booking) => {
     if (!window.confirm(`Mark "${booking.event?.name || booking.Event?.name}" as completed? This will allow the customer to download the invoice.`)) {
       return;
@@ -222,6 +224,7 @@ export default function BookingsTab({
     setShowConfirmationModal(true);
   };
 
+  // Confirms a booking with date, deposit, and optional discount details
   const handleConfirmSubmit = async (details) => {
     try {
       setLoading(true);
@@ -234,12 +237,20 @@ export default function BookingsTab({
         notes: details.notes,
       });
 
+      // Apply discount if provided
+      if (details.discountAmount && details.discountAmount > 0) {
+        await API.put(`/booking/manager/discount/${selectedBooking.id}`, {
+          discountAmount: details.discountAmount,
+          discountReason: details.discountReason || null,
+        });
+      }
+
       showToast("Booking confirmed!", "success");
       setShowConfirmationModal(false);
       fetchBookings();
     } catch (err) {
       console.error(err);
-      showToast("Failed to confirm booking", "error");
+      showToast(err.response?.data?.message || "Failed to confirm booking", "error");
     } finally {
       setLoading(false);
     }
@@ -742,7 +753,19 @@ export default function BookingsTab({
                       }
                       return null;
                     })}
-                    <tr style={{ background: '#fef3c7', fontWeight: 'bold' }}>
+                    {parseFloat(invoiceData.specialRequestPrice || 0) > 0 && (
+                      <tr style={{ borderBottom: '1px solid #ddd' }}>
+                        <td style={{ padding: '8px' }}>Special Request Charges</td>
+                        <td style={{ padding: '8px', textAlign: 'right' }}>+ ₹{parseFloat(invoiceData.specialRequestPrice).toLocaleString()}</td>
+                      </tr>
+                    )}
+                    {parseFloat(invoiceData.discountAmount || 0) > 0 && (
+                      <tr style={{ borderBottom: '1px solid #ddd', background: '#fef3c7' }}>
+                        <td style={{ padding: '8px', color: '#92400e' }}>🎉 Discount{invoiceData.discountReason ? ` (${invoiceData.discountReason})` : ''}</td>
+                        <td style={{ padding: '8px', textAlign: 'right', color: '#dc2626', fontWeight: 'bold' }}>- ₹{parseFloat(invoiceData.discountAmount).toLocaleString()}</td>
+                      </tr>
+                    )}
+                    <tr style={{ background: '#d1fae5', fontWeight: 'bold' }}>
                       <td style={{ padding: '8px' }}>Total Amount</td>
                       <td style={{ padding: '8px', textAlign: 'right' }}>₹{(invoiceData.finalPrice || invoiceData.totalPrice || 0).toLocaleString()}</td>
                     </tr>

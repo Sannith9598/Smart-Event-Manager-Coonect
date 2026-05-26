@@ -3,6 +3,7 @@ import { Modal, Badge, ProgressBar, Spinner } from "react-bootstrap";
 import { FaStar, FaClock, FaMapMarkerAlt, FaTimes, FaCalendarAlt, FaTrophy, FaUsers } from "react-icons/fa";
 import API from "../../services/api";
 
+// Side-by-side comparison modal showing ratings, experience, and scores for selected managers
 export default function ComparisonView({ managers, onRemove, onClose }) {
   const [comparisonData, setComparisonData] = useState(null);
   const [loading, setLoading] = useState(false);

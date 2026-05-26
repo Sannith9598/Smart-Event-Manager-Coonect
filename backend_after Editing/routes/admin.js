@@ -5,7 +5,7 @@ const auth = require("../middleware/auth");
 
 const { Verification, User, EventManager, AuditLog, Notification } = db;
 
-// Helper to log admin actions
+// Helper to log admin actions for the audit trail
 const logAdminAction = async (adminId, action, targetType, targetId, details = {}, ip = null) => {
   try {
     await AuditLog.create({ adminId, action, targetType, targetId, details, ipAddress: ip });
@@ -14,7 +14,7 @@ const logAdminAction = async (adminId, action, targetType, targetId, details = {
   }
 };
 
-// Helper to create notification
+// Helper to create an in-app notification for a user
 const createNotification = async (userId, title, message, type, link = null) => {
   try {
     await Notification.create({ userId, title, message, type, link });
@@ -23,6 +23,7 @@ const createNotification = async (userId, title, message, type, link = null) => 
   }
 };
 
+// Middleware to verify the user has admin role before proceeding
 const checkAdmin = (req, res, next) => {
   if (!req.user || req.user.role !== "admin") {
     return res.status(403).json({ 
@@ -33,6 +34,7 @@ const checkAdmin = (req, res, next) => {
   next();
 };
 
+// GET /verified — Public endpoint that returns all verified managers for homepage display
 router.get("/verified", async (req, res) => {
   // Public endpoint - intentionally unauthenticated for homepage display
   try {
@@ -78,6 +80,7 @@ router.get("/verified", async (req, res) => {
 });
 
 
+// GET /verifications — Returns paginated list of all verification requests with optional status filter
 router.get("/verifications", auth, checkAdmin, async (req, res) => {
   try {
     const { status, page = 1, limit = 10 } = req.query;
@@ -137,6 +140,7 @@ router.get("/verifications", auth, checkAdmin, async (req, res) => {
   }
 });
 
+// GET /verifications/pending — Returns only pending verification requests for quick admin review
 router.get("/verifications/pending", auth, checkAdmin, async (req, res) => {
   try {
     const verifications = await Verification.findAll({
@@ -180,6 +184,7 @@ router.get("/verifications/pending", auth, checkAdmin, async (req, res) => {
   }
 });
 
+// GET /verifications/:id — Returns full details of a single verification request
 router.get("/verifications/:id", auth, checkAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -222,6 +227,7 @@ router.get("/verifications/:id", auth, checkAdmin, async (req, res) => {
   }
 });
 
+// PUT /verifications/:id/approve — Approves a verification and marks the manager as verified (transactional)
 router.put("/verifications/:id/approve", auth, checkAdmin, async (req, res) => {
   const t = await db.sequelize.transaction();
   try {
@@ -307,6 +313,7 @@ router.put("/verifications/:id/approve", auth, checkAdmin, async (req, res) => {
   }
 });
 
+// PUT /verifications/:id/reject — Rejects a verification request with a required reason
 router.put("/verifications/:id/reject", auth, checkAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -381,6 +388,7 @@ router.put("/verifications/:id/reject", auth, checkAdmin, async (req, res) => {
   }
 });
 
+// GET /statistics — Returns platform-wide verification and manager stats for the admin dashboard
 router.get("/statistics", auth, checkAdmin, async (req, res) => {
   try {
     const totalVerifications = await Verification.count();
@@ -411,7 +419,7 @@ router.get("/statistics", auth, checkAdmin, async (req, res) => {
 
 // ==================== CUSTOMER MANAGEMENT ROUTES ====================
 
-// Get all customers
+// GET /customers — Returns paginated list of all customers with booking stats
 router.get("/customers", auth, checkAdmin, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -480,7 +488,7 @@ router.get("/customers", auth, checkAdmin, async (req, res) => {
   }
 });
 
-// Get customer statistics
+// GET /customers/stats — Returns aggregate customer and booking counts for the admin dashboard
 router.get("/customers/stats", auth, checkAdmin, async (req, res) => {
   try {
     const totalCustomers = await db.User.count({ where: { role: "customer" } });
@@ -512,7 +520,7 @@ router.get("/customers/stats", auth, checkAdmin, async (req, res) => {
   }
 });
 
-// Get customer details with bookings
+// GET /customers/:id/details — Returns a customer's full profile including their booking history
 router.get("/customers/:id/details", auth, checkAdmin, async (req, res) => {
   try {
     const customer = await db.User.findOne({
@@ -557,7 +565,7 @@ router.get("/customers/:id/details", auth, checkAdmin, async (req, res) => {
   }
 });
 
-// Update customer status (active/blocked)
+// PUT /customers/:id/status — Blocks or unblocks a customer account
 router.put("/customers/:id/status", auth, checkAdmin, async (req, res) => {
   try {
     const { status } = req.body;
@@ -619,7 +627,7 @@ router.put("/customers/:id/status", auth, checkAdmin, async (req, res) => {
 });
 
 
-// Get all managers
+// GET /managers — Returns all managers with their business profiles and aggregated stats
 router.get("/managers", auth, checkAdmin, async (req, res) => {
   try {
     const managers = await db.User.findAll({
@@ -694,7 +702,7 @@ router.get("/managers", auth, checkAdmin, async (req, res) => {
   }
 });
 
-// Get verified managers only
+// GET /managers/verified — Returns only managers who have been verified
 router.get("/managers/verified", auth, checkAdmin, async (req, res) => {
   try {
     const eventManagers = await db.EventManager.findAll({
@@ -735,7 +743,7 @@ router.get("/managers/verified", auth, checkAdmin, async (req, res) => {
   }
 });
 
-// Get managers pending verification
+// GET /managers/pending-verification — Returns managers awaiting verification approval
 router.get("/managers/pending-verification", auth, checkAdmin, async (req, res) => {
   try {
     const pendingVerifications = await db.Verification.findAll({
@@ -788,7 +796,7 @@ router.get("/managers/pending-verification", auth, checkAdmin, async (req, res) 
   }
 });
 
-// Get manager statistics
+// GET /managers/stats — Returns aggregate manager and event counts for the admin dashboard
 router.get("/managers/stats", auth, checkAdmin, async (req, res) => {
   try {
     const totalManagers = await db.User.count({ where: { role: "manager" } });
@@ -815,7 +823,7 @@ router.get("/managers/stats", auth, checkAdmin, async (req, res) => {
   }
 });
 
-// Get manager details
+// GET /managers/:id/details — Returns a manager's full profile, events, bookings, and revenue
 router.get("/managers/:id/details", auth, checkAdmin, async (req, res) => {
   try {
     const manager = await db.User.findOne({
@@ -888,7 +896,7 @@ router.get("/managers/:id/details", auth, checkAdmin, async (req, res) => {
   }
 });
 
-// Verify/Unverify manager
+// PUT /managers/:id/verify — Manually verifies or unverifies a manager from the admin panel
 router.put("/managers/:id/verify", auth, checkAdmin, async (req, res) => {
   try {
     const { isVerified } = req.body;
@@ -973,7 +981,7 @@ router.put("/managers/:id/verify", auth, checkAdmin, async (req, res) => {
 
 // ==================== AUDIT LOG ROUTES ====================
 
-// Get audit logs
+// GET /audit-logs — Returns paginated admin action history for accountability
 router.get("/audit-logs", auth, checkAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
@@ -1003,7 +1011,7 @@ router.get("/audit-logs", auth, checkAdmin, async (req, res) => {
   }
 });
 
-// Helper to escape CSV values
+// Helper to safely escape values for CSV export
 const escapeCsv = (value) => {
   if (value === null || value === undefined) return '';
   const str = String(value);
@@ -1013,7 +1021,7 @@ const escapeCsv = (value) => {
   return `"${str}"`;
 };
 
-// Export customers as CSV
+// GET /export/customers — Downloads all customer data as a CSV file
 router.get("/export/customers", auth, checkAdmin, async (req, res) => {
   try {
     const customers = await db.User.findAll({
@@ -1039,7 +1047,7 @@ router.get("/export/customers", auth, checkAdmin, async (req, res) => {
   }
 });
 
-// Get all bookings (admin)
+// GET /bookings — Returns all bookings across the platform for admin oversight
 router.get("/bookings", auth, checkAdmin, async (req, res) => {
   try {
     const bookings = await db.Booking.findAll({
@@ -1065,7 +1073,7 @@ router.get("/bookings", auth, checkAdmin, async (req, res) => {
   }
 });
 
-// Export bookings as CSV
+// GET /export/bookings — Downloads all booking data as a CSV file
 router.get("/export/bookings", auth, checkAdmin, async (req, res) => {
   try {
     const bookings = await db.Booking.findAll({

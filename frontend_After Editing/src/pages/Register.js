@@ -7,6 +7,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaMobile, FaHome, FaUserTie, FaShieldAlt, FaCalendarCheck } from "react-icons/fa";
 import { motion } from "framer-motion";
 
+// Registration page with OTP email verification and role selection
 export default function Register() {
   const [form, setForm] = useState({
     name: "",
@@ -61,6 +62,7 @@ export default function Register() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Sends an OTP to the user's email before completing registration
   const sendOTP = async () => {
     if (!validate()) return false;
     setSendingOtp(true);
@@ -88,6 +90,7 @@ export default function Register() {
     }
   };
 
+  // Verifies the OTP and creates the user account
   const verifyOTPAndRegister = async () => {
     if (!otp || otp.length !== 6) {
       setOtpError("Please enter a valid 6-digit OTP");
@@ -121,6 +124,7 @@ export default function Register() {
     }
   };
 
+  // Resends the OTP if the cooldown timer has expired
   const resendOTP = async () => {
     if (resendTimer > 0) return;
     try {

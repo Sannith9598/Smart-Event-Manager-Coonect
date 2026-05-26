@@ -6,6 +6,7 @@ import API from "../../services/api";
 import AppNavbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
+// Full-page analytics dashboard showing revenue, bookings, conversion rate, and popular events
 export default function Analytics() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,6 +16,7 @@ export default function Analytics() {
     fetchAnalytics();
   }, []);
 
+  // Fetches the manager's analytics data (revenue, bookings, popular events)
   const fetchAnalytics = async () => {
     try {
       setLoading(true);

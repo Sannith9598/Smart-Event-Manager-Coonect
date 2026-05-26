@@ -7,6 +7,7 @@ import { useSocket } from "../context/SocketContext";
 import AppNavbar from "../components/Navbar";
 import API from "../services/api";
 
+// Real-time booking chat page between customer and event manager
 export default function Chat() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
@@ -65,6 +66,7 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Loads the message history for this booking from the API
   const fetchMessages = async () => {
     try {
       const res = await API.get(`/messages/booking/${bookingId}`);
@@ -76,6 +78,7 @@ export default function Chat() {
     }
   };
 
+  // Pulls booking info to display the event name and other user
   const fetchBookingDetails = async () => {
     try {
       const res = await API.get(`/booking/${bookingId}`);
@@ -92,6 +95,7 @@ export default function Chat() {
     }
   };
 
+  // Sends a new message and emits it via socket for real-time delivery
   const handleSend = async () => {
     if (!newMessage.trim()) return;
 
@@ -121,6 +125,7 @@ export default function Chat() {
     }
   };
 
+  // Emits a typing indicator to the other user via socket
   const handleTyping = () => {
     if (socket) {
       socket.emit("typing", { bookingId: parseInt(bookingId), userId: currentUser.id });

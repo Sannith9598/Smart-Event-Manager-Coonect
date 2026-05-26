@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Modal, Form, Button, Alert } from "react-bootstrap";
 
+// Modal for confirming a booking with date, deposit amount, and optional discount
 export default function BookingConfirmationModal({
   show,
   onHide,
@@ -11,6 +12,8 @@ export default function BookingConfirmationModal({
     confirmedDate: "",
     confirmedTime: "",
     depositAmount: 0,
+    discountAmount: 0,
+    discountReason: "",
     notes: "",
   });
   const [errors, setErrors] = useState({});
@@ -29,6 +32,8 @@ export default function BookingConfirmationModal({
         confirmedDate: currentDate,
         confirmedTime: currentTime,
         depositAmount: suggestedDeposit,
+        discountAmount: 0,
+        discountReason: "",
         notes: "",
       });
       setErrors({});
@@ -48,10 +53,17 @@ export default function BookingConfirmationModal({
       newErrors.depositAmount = "Deposit cannot exceed total amount";
     }
 
+    if (confirmationDetails.discountAmount < 0) {
+      newErrors.discountAmount = "Discount cannot be negative";
+    } else if (confirmationDetails.discountAmount > totalAmount) {
+      newErrors.discountAmount = "Discount cannot exceed total amount";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // Submits the booking confirmation with date, deposit, and optional discount
   const handleConfirm = () => {
     if (!validate()) return;
     onConfirm(confirmationDetails);
@@ -135,6 +147,57 @@ export default function BookingConfirmationModal({
               Suggested: ₹{suggestedDeposit.toLocaleString()} (10%)
             </small>
           </Form.Group>
+
+          <Form.Group className="mb-3">
+            {errors.discountAmount && (
+              <div className="validation-message text-danger mb-1" style={{ fontSize: "13px", fontWeight: "500" }}>
+                ⚠️ {errors.discountAmount}
+              </div>
+            )}
+            <Form.Label>Discount Amount (₹) <small className="text-muted">(optional)</small></Form.Label>
+            <Form.Control
+              type="number"
+              value={confirmationDetails.discountAmount}
+              onChange={(e) => {
+                setConfirmationDetails({
+                  ...confirmationDetails,
+                  discountAmount: parseFloat(e.target.value) || 0,
+                });
+                clearFieldError("discountAmount");
+              }}
+              isInvalid={!!errors.discountAmount}
+              min="0"
+            />
+            <small className="text-muted">
+              Apply a discount to this booking. Will be subtracted from the total.
+            </small>
+          </Form.Group>
+
+          {confirmationDetails.discountAmount > 0 && (
+            <Form.Group className="mb-3">
+              <Form.Label>Discount Reason <small className="text-muted">(optional)</small></Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="e.g., Loyalty discount, Early bird offer..."
+                value={confirmationDetails.discountReason}
+                onChange={(e) =>
+                  setConfirmationDetails({
+                    ...confirmationDetails,
+                    discountReason: e.target.value,
+                  })
+                }
+              />
+            </Form.Group>
+          )}
+
+          {confirmationDetails.discountAmount > 0 && (
+            <Alert variant="success" className="py-2">
+              <small>
+                <strong>Final Amount:</strong> ₹{(totalAmount - confirmationDetails.discountAmount).toLocaleString()}
+                {' '}(₹{totalAmount.toLocaleString()} - ₹{confirmationDetails.discountAmount.toLocaleString()} discount)
+              </small>
+            </Alert>
+          )}
 
 
           <Form.Group className="mb-3">

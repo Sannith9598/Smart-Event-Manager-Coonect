@@ -2,7 +2,7 @@ const router = require("express").Router();
 const db = require("../models");
 const auth = require("../middleware/auth");
 
-// Get all notifications for current user
+// GET / — Returns paginated notifications for the logged-in user
 router.get("/", auth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -31,7 +31,7 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// Get unread count
+// GET /unread-count — Returns how many unread notifications the user has
 router.get("/unread-count", auth, async (req, res) => {
   try {
     const count = await db.Notification.count({
@@ -43,7 +43,7 @@ router.get("/unread-count", auth, async (req, res) => {
   }
 });
 
-// Mark single notification as read
+// PUT /:id/read — Marks a single notification as read
 router.put("/:id/read", auth, async (req, res) => {
   try {
     await db.Notification.update(
@@ -56,7 +56,7 @@ router.put("/:id/read", auth, async (req, res) => {
   }
 });
 
-// Mark all as read
+// PUT /mark-all-read — Marks all of the user's unread notifications as read
 router.put("/mark-all-read", auth, async (req, res) => {
   try {
     await db.Notification.update(
@@ -69,7 +69,7 @@ router.put("/mark-all-read", auth, async (req, res) => {
   }
 });
 
-// Delete a notification
+// DELETE /:id — Permanently deletes a single notification
 router.delete("/:id", auth, async (req, res) => {
   try {
     await db.Notification.destroy({

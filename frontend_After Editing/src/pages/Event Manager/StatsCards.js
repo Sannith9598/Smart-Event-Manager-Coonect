@@ -1,6 +1,7 @@
 import { Row, Col, Card, ProgressBar } from "react-bootstrap";
 import { FaCalendarAlt, FaUsers, FaStar } from "react-icons/fa";
 
+// Summary stat cards for events, bookings, upcoming events, and revenue
 export default function StatsCards({ events, bookings, onFilterChange }) {
   const getTotalRevenue = () => {
     if (!bookings || bookings.length === 0) return 0;

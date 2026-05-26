@@ -1,3 +1,5 @@
+// Tracks admin actions like approving verifications, blocking users, etc.
+// Used for accountability and audit trail in the admin panel.
 module.exports = (sequelize, DataTypes) => {
   const AuditLog = sequelize.define("AuditLog", {
     id: {

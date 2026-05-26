@@ -38,6 +38,7 @@ import ConfettiEffect from "../components/ConfettiEffect";
 import BookingStepper from "../components/BookingStepper";
 
 
+// Renders the full event details page with booking flow, add-ons, and image gallery
 export default function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -106,6 +107,10 @@ export default function EventDetails() {
   const [enabledServices, setEnabledServices] = useState({});
   const [expandedCategories, setExpandedCategories] = useState({});
 
+  // Event Reviews state
+  const [eventReviews, setEventReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -120,6 +125,7 @@ export default function EventDetails() {
     }
   }, [user, id]);
 
+  // Checks if this event is already in the user's wishlist
   const checkFavoriteStatus = async () => {
     try {
       const res = await API.get(`/favorites/check/${id}`);
@@ -129,6 +135,7 @@ export default function EventDetails() {
     }
   };
 
+  // Adds or removes this event from the user's wishlist
   const toggleFavorite = async () => {
     if (!user) {
       toast.info("Please login to add favorites");
@@ -150,6 +157,7 @@ export default function EventDetails() {
     }
   };
 
+  // Fetches the event data including images, pricing, and add-on services
   const fetchEventDetails = async () => {
     try {
       setLoading(true);
@@ -161,6 +169,7 @@ export default function EventDetails() {
       }
       
       calculateTotalPrice(res.data.price, 1, [], [], {});
+      fetchEventReviews();
     } catch (err) {
       console.error("Error fetching event details:", err);
       if (err.response?.status === 404) {
@@ -171,6 +180,19 @@ export default function EventDetails() {
     }
   };
 
+  const fetchEventReviews = async () => {
+    try {
+      setLoadingReviews(true);
+      const res = await API.get(`/review/event/${id}`);
+      setEventReviews(res.data || []);
+    } catch (err) {
+      console.error("Error fetching event reviews:", err);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  // Recalculates the total price based on guests, add-ons, and service items
   const calculateTotalPrice = (basePrice, guestCount, addons, customAddons, serviceItems) => {
     let total = parseFloat(basePrice);
     
@@ -221,6 +243,7 @@ export default function EventDetails() {
     return total;
   };
 
+  // Updates booking form fields and recalculates price when guest count changes
   const handleBookingFormChange = (e) => {
     const { name, value } = e.target;
     setBookingForm(prev => ({ ...prev, [name]: value }));
@@ -236,6 +259,7 @@ export default function EventDetails() {
     }
   };
 
+  // Toggles a standard add-on (catering, decoration, etc.) on or off
   const handleAddonToggle = (addon) => {
     let newAddons;
     if (selectedAddons.includes(addon)) {
@@ -338,6 +362,7 @@ export default function EventDetails() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Submits the booking request with all selected options and pricing
   const createBooking = async () => {
     if (!user) {
       toast.warning("Please login to book this event");
@@ -752,6 +777,87 @@ export default function EventDetails() {
                         ))}
                       </div>
                     )}
+
+                    {/* Event Reviews Section */}
+                    <div className="mb-4">
+                      <h5 className="event-section-title">
+                        <FaStar className="text-warning me-2" />
+                        Customer Reviews
+                        {eventReviews.length > 0 && (
+                          <span style={{ fontSize: "14px", fontWeight: "normal", color: "#6b7280", marginLeft: "8px" }}>
+                            ({eventReviews.length} {eventReviews.length === 1 ? 'review' : 'reviews'})
+                          </span>
+                        )}
+                      </h5>
+                      
+                      {loadingReviews ? (
+                        <div className="text-center py-3">
+                          <Spinner animation="border" size="sm" />
+                          <p className="text-muted mt-2" style={{ fontSize: "13px" }}>Loading reviews...</p>
+                        </div>
+                      ) : eventReviews.length === 0 ? (
+                        <div className="text-center py-4" style={{ background: "#f9fafb", borderRadius: "12px" }}>
+                          <FaStar style={{ fontSize: "2rem", color: "#e2e8f0" }} />
+                          <p className="text-muted mt-2 mb-0" style={{ fontSize: "14px" }}>No reviews yet. Be the first to review after your event!</p>
+                        </div>
+                      ) : (
+                        <div>
+                          {/* Average Rating Summary */}
+                          <div className="d-flex align-items-center gap-3 mb-3 p-3" style={{ background: "#f9fafb", borderRadius: "12px" }}>
+                            <div className="text-center">
+                              <h3 style={{ color: "#f59e0b", margin: 0 }}>
+                                {(eventReviews.reduce((sum, r) => sum + r.rating, 0) / eventReviews.length).toFixed(1)}
+                              </h3>
+                              <div>
+                                {[1, 2, 3, 4, 5].map(star => (
+                                  <FaStar
+                                    key={star}
+                                    style={{
+                                      color: star <= Math.round(eventReviews.reduce((sum, r) => sum + r.rating, 0) / eventReviews.length) ? "#f59e0b" : "#e2e8f0",
+                                      fontSize: "14px"
+                                    }}
+                                  />
+                                ))}
+                              </div>
+                              <small className="text-muted">{eventReviews.length} reviews</small>
+                            </div>
+                          </div>
+
+                          {/* Reviews List */}
+                          {eventReviews.slice(0, 5).map((review) => (
+                            <div key={review.id} className="mb-3 p-3" style={{ border: "1px solid #f3f4f6", borderRadius: "10px" }}>
+                              <div className="d-flex justify-content-between align-items-start">
+                                <div>
+                                  <strong style={{ fontSize: "14px" }}>{review.user?.name || "Customer"}</strong>
+                                  <div className="mt-1">
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                      <FaStar
+                                        key={star}
+                                        style={{ color: star <= review.rating ? "#f59e0b" : "#e2e8f0", fontSize: "12px" }}
+                                      />
+                                    ))}
+                                    <span className="ms-2 text-muted" style={{ fontSize: "12px" }}>{review.rating}/5</span>
+                                  </div>
+                                </div>
+                                <small className="text-muted">
+                                  {new Date(review.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                                </small>
+                              </div>
+                              {review.comment && (
+                                <p className="mt-2 mb-0" style={{ color: "#475569", fontSize: "14px", lineHeight: "1.5" }}>
+                                  "{review.comment}"
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                          {eventReviews.length > 5 && (
+                            <p className="text-center text-muted" style={{ fontSize: "13px" }}>
+                              And {eventReviews.length - 5} more reviews...
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </Card.Body>
                 </Card>
               </motion.div>

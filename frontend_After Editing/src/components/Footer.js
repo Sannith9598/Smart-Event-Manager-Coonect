@@ -18,6 +18,7 @@ import {
 import { useTheme } from "../context/ThemeContext";
 
 
+// Renders the site-wide footer with contact info, quick links, social icons, and support section
 export default function Footer() {
   const { darkMode } = useTheme();
 

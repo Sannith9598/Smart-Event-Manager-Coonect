@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import NotificationBell from "./NotificationBell";
 import API from "../services/api";
 
+// Renders the top navigation bar with role-based links, theme toggle, messages, and auth controls
 export default function AppNavbar() {
   const navigate = useNavigate();
   const { darkMode, toggleDarkMode } = useTheme();
@@ -30,6 +31,7 @@ export default function AppNavbar() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Fetches the current unread message count from the API
   const fetchUnreadMessages = async () => {
     try {
       const res = await API.get("/messages/unread-count");
@@ -39,6 +41,7 @@ export default function AppNavbar() {
     }
   };
 
+  // Clears all auth data from localStorage and redirects to home on logout click
   const logout = () => {
     localStorage.clear();
     window.dispatchEvent(new Event("auth-change"));

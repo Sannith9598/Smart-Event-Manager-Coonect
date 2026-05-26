@@ -3,6 +3,7 @@ import { Modal, Badge, Carousel } from "react-bootstrap";
 import { FaCheckCircle, FaCalendarAlt, FaUser, FaPlay, FaExpand } from "react-icons/fa";
 import ImageLightbox from "../../components/ImageLightbox";
 
+// Modal showing a past event's full media carousel with lightbox and details
 export default function MediaDetailModal({ event, profile, onClose }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);

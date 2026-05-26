@@ -32,6 +32,7 @@ const PageLoader = () => (
 
 export const baseurl = process.env.REACT_APP_API_URL || "http://localhost:5000/api"
 
+// Main app shell — sets up routing, auth context, and lazy-loaded page structure
 function App() {
   return (
     <BrowserRouter>

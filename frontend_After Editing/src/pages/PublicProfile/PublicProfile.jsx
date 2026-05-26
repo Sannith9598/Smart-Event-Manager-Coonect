@@ -11,6 +11,7 @@ import ComparisonView from "./ComparisonView";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
+// Public-facing manager profile page with packages, portfolio gallery, reviews, and comparison
 export default function PublicProfile() {
   const { managerId } = useParams();
   const navigate = useNavigate();
@@ -49,6 +50,7 @@ export default function PublicProfile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
 
+  // Loads the manager's public profile data
   const fetchProfile = async () => {
     try {
       setLoading(true);
@@ -65,6 +67,7 @@ export default function PublicProfile() {
     }
   };
 
+  // Fetches paginated past events for the portfolio grid
   const fetchEvents = async (pageNum) => {
     try {
       setEventsLoading(true);

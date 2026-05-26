@@ -16,6 +16,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 const MAX_MEDIA_PER_EVENT = 3; // During verification, max 3 per event
 
+// Step 2 of verification — collects past events with media uploads for portfolio proof
 export default function Step2PastEvents({ formData, setFormData, validationErrors, setValidationErrors }) {
   const [uploading, setUploading] = useState({});
   const [uploadErrors, setUploadErrors] = useState({});

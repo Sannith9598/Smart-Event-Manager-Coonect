@@ -3,6 +3,7 @@ import { FaBell, FaTimes } from "react-icons/fa";
 import { useSocket } from "../context/SocketContext";
 import API from "../services/api";
 
+// Renders the bell icon with unread count badge and a dropdown list of notifications
 export default function NotificationBell() {
   const { notifications, unreadCount, markAllRead, setUnreadCount } = useSocket();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -43,6 +44,7 @@ export default function NotificationBell() {
     }
   }, [notifications]);
 
+  // Loads all notifications from the backend
   const fetchNotifications = async () => {
     try {
       const res = await API.get("/notifications");
@@ -52,6 +54,7 @@ export default function NotificationBell() {
     }
   };
 
+  // Marks all notifications as read when user clicks "Mark all read"
   const handleMarkAllRead = async () => {
     try {
       await API.put("/notifications/mark-all-read");
@@ -62,6 +65,7 @@ export default function NotificationBell() {
     }
   };
 
+  // Marks a single notification as read when the user clicks on it
   const handleMarkOneRead = async (notifId) => {
     try {
       await API.put(`/notifications/${notifId}/read`);
@@ -74,6 +78,7 @@ export default function NotificationBell() {
     }
   };
 
+  // Removes a notification from the list when user clicks the X button
   const handleDeleteNotification = async (notifId, e) => {
     e.stopPropagation();
     try {
@@ -88,6 +93,7 @@ export default function NotificationBell() {
     }
   };
 
+  // Marks as read and navigates to the relevant page when a notification is clicked
   const handleNotificationClick = (notif) => {
     if (!notif.isRead) {
       handleMarkOneRead(notif.id);
@@ -98,6 +104,7 @@ export default function NotificationBell() {
     }
   };
 
+  // Returns a human-readable relative time string like "5m ago" or "2d ago"
   const getTimeAgo = (date) => {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
     if (seconds < 60) return "Just now";
@@ -106,6 +113,7 @@ export default function NotificationBell() {
     return `${Math.floor(seconds / 86400)}d ago`;
   };
 
+  // Maps notification type to an emoji icon for visual context
   const getTypeIcon = (type) => {
     switch (type) {
       case "booking_new": return "📋";

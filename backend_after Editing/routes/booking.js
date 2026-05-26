@@ -18,6 +18,7 @@ const bookingCreateLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// POST /create — Creates a new booking with server-side price calculation to prevent manipulation
 router.post("/create", auth, bookingCreateLimiter, async (req, res) => {
   try {
     const customerId = req.user.id;
@@ -219,6 +220,7 @@ router.post("/create", auth, bookingCreateLimiter, async (req, res) => {
   }
 });
 
+// PUT /manager/booking/:id — Lets the manager update booking status (confirm, reject, cancel)
 router.put("/manager/booking/:id", auth, async (req, res) => {
   try {
     const user = await db.User.findByPk(req.user.id);
@@ -309,6 +311,7 @@ router.put("/manager/booking/:id", auth, async (req, res) => {
   }
 });
 
+// GET /my-bookings — Returns paginated list of the logged-in customer's bookings
 router.get("/my-bookings", auth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -352,6 +355,7 @@ router.get("/my-bookings", auth, async (req, res) => {
   }
 });
 
+// GET /manager/bookings — Returns paginated list of bookings assigned to the logged-in manager
 router.get("/manager/bookings", auth, async (req, res) => {
   try {
     const user = await db.User.findByPk(req.user.id);
@@ -400,6 +404,7 @@ router.get("/manager/bookings", auth, async (req, res) => {
   }
 });
 
+// GET /:id — Fetches a single booking (accessible by either the customer or the manager)
 router.get("/:id", auth, async (req, res) => {
   try {
     const booking = await db.Booking.findOne({
@@ -425,6 +430,7 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
+// PUT /cancel/:id — Allows a customer to cancel their own pending or confirmed booking
 router.put("/cancel/:id", auth, async (req, res) => {
   try {
     const booking = await db.Booking.findOne({
@@ -448,7 +454,7 @@ router.put("/cancel/:id", auth, async (req, res) => {
   }
 });
 
-// Manager sets special request price for a booking
+// PUT /manager/special-request-price/:id — Manager sets a price for the customer's special request and recalculates total
 router.put("/manager/special-request-price/:id", auth, async (req, res) => {
   try {
     const user = await db.User.findByPk(req.user.id);
@@ -481,7 +487,7 @@ router.put("/manager/special-request-price/:id", auth, async (req, res) => {
     }
 
     // Update the booking with special request price and recalculate final price
-    const finalPrice = (booking.totalPrice || 0) + priceValue;
+    const finalPrice = (booking.totalPrice || 0) + priceValue - (parseFloat(booking.discountAmount) || 0);
 
     await booking.update({
       specialRequestPrice: priceValue,
@@ -526,6 +532,91 @@ router.put("/manager/special-request-price/:id", auth, async (req, res) => {
   }
 });
 
+// PUT /manager/discount/:id — Applies a discount to a booking and recalculates the final price
+router.put("/manager/discount/:id", auth, async (req, res) => {
+  try {
+    const user = await db.User.findByPk(req.user.id);
+    if (!user || user.role !== "manager") {
+      return res.status(403).json({ success: false, message: "Manager only" });
+    }
+
+    const booking = await db.Booking.findByPk(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+    if (booking.managerId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Unauthorized access" });
+    }
+
+    if (!['pending', 'confirmed'].includes(booking.status)) {
+      return res.status(400).json({ success: false, message: "Can only apply discount on pending or confirmed bookings" });
+    }
+
+    const { discountAmount, discountReason } = req.body;
+
+    if (discountAmount === undefined || discountAmount === null) {
+      return res.status(400).json({ success: false, message: "discountAmount is required" });
+    }
+
+    const discountValue = parseFloat(discountAmount);
+    if (isNaN(discountValue) || discountValue < 0) {
+      return res.status(400).json({ success: false, message: "Discount amount must be a non-negative number" });
+    }
+
+    const totalBeforeDiscount = parseFloat(booking.totalPrice || 0) + parseFloat(booking.specialRequestPrice || 0);
+    if (discountValue > totalBeforeDiscount) {
+      return res.status(400).json({ success: false, message: "Discount cannot exceed total amount" });
+    }
+
+    const finalPrice = totalBeforeDiscount - discountValue;
+
+    await booking.update({
+      discountAmount: discountValue,
+      discountReason: discountReason || null,
+      finalPrice: finalPrice,
+    });
+
+    // Notify the customer about the discount
+    try {
+      const event = await db.Event.findByPk(booking.eventId);
+      await db.Notification.create({
+        userId: booking.customerId,
+        title: "Discount Applied! 🎉",
+        message: `A discount of ₹${discountValue.toLocaleString()} has been applied to your booking for "${event?.name || 'event'}". New total: ₹${finalPrice.toLocaleString()}`,
+        type: "booking_update",
+        link: "/customer/bookings",
+      });
+
+      const io = req.app.get("io");
+      if (io) {
+        io.to(`user_${booking.customerId}`).emit("notification", {
+          title: "Discount Applied! 🎉",
+          message: `Discount of ₹${discountValue.toLocaleString()} applied`,
+          type: "booking_update",
+        });
+      }
+    } catch (notifErr) {
+      console.error("Notification failed:", notifErr);
+    }
+
+    res.json({
+      success: true,
+      message: "Discount applied successfully",
+      data: {
+        discountAmount: discountValue,
+        discountReason: discountReason || null,
+        totalPrice: booking.totalPrice,
+        specialRequestPrice: booking.specialRequestPrice,
+        finalPrice: finalPrice,
+      },
+    });
+  } catch (error) {
+    console.error("Discount error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// PUT /manager/complete/:id — Marks a confirmed booking as completed and notifies the customer
 router.put("/manager/complete/:id", auth, async (req, res) => {
   try {
     const user = await db.User.findByPk(req.user.id);
@@ -574,7 +665,7 @@ router.put("/manager/complete/:id", auth, async (req, res) => {
   }
 });
 
-// Also add a GET endpoint for single booking with full details (for invoice)
+// GET /details/:id — Returns full booking details for the customer (used for invoice generation)
 router.get("/details/:id", auth, async (req, res) => {
   try {
     const booking = await db.Booking.findOne({
@@ -605,7 +696,7 @@ router.get("/details/:id", auth, async (req, res) => {
   }
 });
 
-// Get booking details for manager (for invoice generation)
+// GET /manager/details/:id — Returns full booking details for the manager (used for invoice generation)
 router.get("/manager/details/:id", auth, async (req, res) => {
   try {
     const user = await db.User.findByPk(req.user.id);

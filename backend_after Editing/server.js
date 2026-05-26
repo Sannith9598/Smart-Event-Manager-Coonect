@@ -43,7 +43,7 @@ app.use(helmet({
 // Trust proxy - needed for correct req.ip behind Render/load balancers
 app.set("trust proxy", 1);
 
-// Socket.io setup
+// Real-time comms via Socket.io — handles chat, notifications, and live updates
 const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
@@ -54,7 +54,7 @@ const io = new Server(server, {
   transports: ["polling", "websocket"],
 });
 
-// Socket.io authentication middleware
+// Verify JWT on socket connection so we know who's on the other end
 const jwt = require("jsonwebtoken");
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
@@ -74,7 +74,7 @@ io.use((socket, next) => {
 // Make io accessible in routes
 app.set("io", io);
 
-// Socket.io connection handling
+// Handle socket connections — room joins, chat messages, typing indicators
 io.on("connection", (socket) => {
   // Auto-join user's personal room based on authenticated userId
   socket.join(`user_${socket.userId}`);
@@ -132,7 +132,7 @@ app.use(require("./middleware/requestId"));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Routes - API v1 (#11 - API Versioning)
+// Mount all API routes under /api/v1 — versioned for future-proofing
 app.use("/api/v1/auth", require("./routes/auth"));
 app.use("/api/v1/event", require("./routes/event"));
 app.use("/api/v1/chatbot", require("./routes/chatbot"));
@@ -146,7 +146,7 @@ app.use("/api/v1/messages", require("./routes/message"));
 app.use("/api/v1/notifications", require("./routes/notification"));
 app.use("/api/v1/favorites", require("./routes/favorites"));
 
-// Backward compatibility - keep old /api/ routes working
+// Backward compatibility — keep old /api/ routes working so existing clients don't break
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/event", require("./routes/event"));
 app.use("/api/chatbot", require("./routes/chatbot"));
@@ -176,10 +176,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-// Database sync strategy:
-// - Production: only authenticate (use migrations for schema changes)
-// - Development: sync without alter to avoid duplicate index issues
-// ─── Auto-seed admin on startup if not exists ────────────────────────────────
+// Seeds a default admin account on first startup if none exists
 const ensureAdminExists = async () => {
   try {
     const bcrypt = require("bcryptjs");
@@ -203,12 +200,13 @@ const ensureAdminExists = async () => {
   }
 };
 
+// Connects to the DB, syncs schema in dev, then boots the HTTP server
 const startServer = async () => {
   if (process.env.NODE_ENV === "production") {
     await db.sequelize.authenticate();
     console.log("Database connected (production - no sync)");
   } else {
-    await db.sequelize.sync({});
+    await db.sequelize.sync({ alter: true });
     console.log("Database synced (development)");
   }
 
@@ -221,7 +219,7 @@ const startServer = async () => {
 startServer()
   .then(() => {
 
-    // Booking Reminders Cron Job (#14) - Runs every day at 9 AM IST
+    // Runs daily at 9 AM — sends reminder notifications for bookings happening tomorrow
     cron.schedule("0 9 * * *", async () => {
       try {
         const tomorrow = new Date();
@@ -286,8 +284,7 @@ startServer()
 
     console.log("📅 Booking reminder cron job scheduled (daily at 9 AM IST)");
 
-    // Cleanup Cron Job - Runs daily at 2 AM IST
-    // Removes expired OTPs, old notifications, and expired login attempts
+    // Runs daily at 2 AM — cleans up expired OTPs, old notifications, stale login attempts, and aged audit logs
     cron.schedule("0 2 * * *", async () => {
       try {
         const now = new Date();
@@ -336,8 +333,7 @@ startServer()
 
     console.log("🧹 Cleanup cron job scheduled (daily at 2 AM IST)");
 
-    // Cloudinary orphan cleanup - Runs every Sunday at 3 AM IST
-    // Logs orphan detection (manual review recommended before bulk delete)
+    // Runs every Sunday at 3 AM — finds and removes Cloudinary images no longer referenced in the DB
     cron.schedule("0 3 * * 0", async () => {
       try {
         const { cloudinary } = require("./config/cloudinary");
@@ -410,7 +406,7 @@ startServer()
     process.exit(1);
   });
 
-// Graceful shutdown for production (Render sends SIGTERM)
+// Graceful shutdown — close connections cleanly when Render (or Ctrl+C) tells us to stop
 process.on("SIGTERM", () => {
   console.log("SIGTERM received. Shutting down gracefully...");
   server.close(() => {

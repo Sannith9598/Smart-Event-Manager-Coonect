@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaHome } from "react-icons/fa";
 import API from "../services/api";
 
+// Login page with email/password auth and role-based redirect
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
@@ -38,6 +39,7 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Authenticates the user and redirects based on their role
   const login = async () => {
     if (!validate()) return;
     try {

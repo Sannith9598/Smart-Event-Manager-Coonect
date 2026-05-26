@@ -25,6 +25,7 @@ import Chatbot from "../../Chatbot.js";
 import { generateInvoicePDF } from "../../utils/generateInvoice";
 import { toast } from "react-toastify";
 
+// Customer dashboard with booking stats, recent bookings table, and quick actions
 export default function CustomerDashboard() {
   const [verifiedManagers, setVerifiedManagers] = useState([]);
   const [error, setError] = useState(null);
@@ -74,6 +75,7 @@ export default function CustomerDashboard() {
     }
   };
 
+  // Fetches all bookings and calculates dashboard stats
   const fetchBookings = async () => {
     try {
       setLoading(true);

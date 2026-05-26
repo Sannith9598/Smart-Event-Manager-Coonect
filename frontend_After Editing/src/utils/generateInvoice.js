@@ -1,10 +1,4 @@
-/**
- * Shared Invoice PDF Generator
- * Used by CustomerDashboard, Bookings, and BookingsTab (Manager)
- * Includes full price breakdown with GST (5%)
- */
-
-// HTML entity escaping to prevent XSS in innerHTML
+// Escapes HTML special chars to prevent XSS when injecting text into innerHTML
 const escapeHtml = (str) => {
   if (str === null || str === undefined) return '';
   return String(str)
@@ -15,10 +9,12 @@ const escapeHtml = (str) => {
     .replace(/'/g, '&#039;');
 };
 
+// Formats a number as Indian Rupee currency with 2 decimal places
 const formatCurrency = (amount) => {
   return `₹${(parseFloat(amount) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
+// Converts a date string to a readable Indian locale format (e.g. "15 June 2024")
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
   return new Date(dateString).toLocaleDateString('en-IN', {
@@ -30,12 +26,7 @@ const formatDate = (dateString) => {
 
 const GST_RATE = 0.05; // 5% GST
 
-/**
- * Generate and download an invoice PDF for a booking
- * @param {Object} booking - The booking data (with event, customer/user info)
- * @param {Object} currentUser - The currently logged-in user (for "Invoice To" section)
- * @param {string} role - 'customer' or 'manager' - determines whose info shows in "Invoice To"
- */
+// Generates and downloads a PDF invoice with full price breakdown including GST
 export async function generateInvoicePDF(booking, currentUser, role = 'customer') {
   const { jsPDF } = await import('jspdf');
   const html2canvasModule = await import('html2canvas');
@@ -139,9 +130,11 @@ export async function generateInvoicePDF(booking, currentUser, role = 'customer'
   }
 
   // Calculate subtotal, GST, and grand total
+  const discountAmount = parseFloat(booking.discountAmount) || 0;
   const subtotal = basePrice + extraGuestsCost + addonsTotal + customAddonsTotal + serviceItemsTotal + specialRequestPrice;
-  const gstAmount = subtotal * GST_RATE;
-  const grandTotal = subtotal + gstAmount;
+  const afterDiscount = subtotal - discountAmount;
+  const gstAmount = afterDiscount * GST_RATE;
+  const grandTotal = afterDiscount + gstAmount;
 
   const invoiceElement = document.createElement('div');
   invoiceElement.style.width = '800px';
@@ -239,6 +232,12 @@ export async function generateInvoicePDF(booking, currentUser, role = 'customer'
             <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb;"><strong>Subtotal</strong></td>
             <td style="padding: 10px 12px; text-align: right; border-bottom: 1px solid #e5e7eb;"><strong>${formatCurrency(subtotal)}</strong></td>
           </tr>
+          ${discountAmount > 0 ? `
+          <tr style="background: #fef3c7;">
+            <td style="padding: 10px 12px; border-bottom: 1px solid #e5e7eb; color: #92400e;">🎉 Discount${booking.discountReason ? ' (' + escapeHtml(booking.discountReason) + ')' : ''}</td>
+            <td style="padding: 10px 12px; text-align: right; border-bottom: 1px solid #e5e7eb; color: #dc2626; font-weight: bold;">-${formatCurrency(discountAmount)}</td>
+          </tr>
+          ` : ''}
           <tr>
             <td style="padding: 10px 12px; border-bottom: 1px solid #f3f4f6;">GST (5%)</td>
             <td style="padding: 10px 12px; text-align: right; border-bottom: 1px solid #f3f4f6;">${formatCurrency(gstAmount)}</td>

@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 
-// Basic JWT expiry check without a library
+// Checks if the JWT is expired by decoding the payload and comparing exp to current time
 const isTokenExpired = (token) => {
   if (!token) return true;
   try {
@@ -12,6 +12,7 @@ const isTokenExpired = (token) => {
   }
 };
 
+// Wraps routes that require authentication — redirects to login if no valid token or wrong role
 export default function ProtectedRoute({ children, allowedRoles }) {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "null");

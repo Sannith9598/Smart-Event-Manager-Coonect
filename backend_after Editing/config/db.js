@@ -1,4 +1,6 @@
-// config/db.js
+// Sets up the Sequelize MySQL connection.
+// Supports DATABASE_URL for cloud deployments (Render, Railway) or
+// individual env vars (DB_NAME, DB_USER, etc.) for local dev.
 const { Sequelize } = require("sequelize");
 
 let sequelize;

@@ -3,6 +3,7 @@ import { Modal, Spinner, Alert, Badge } from "react-bootstrap";
 import { FaStar, FaCalendarAlt, FaUser, FaCheckCircle } from "react-icons/fa";
 import API from "../../services/api";
 
+// Modal showing a client's booking history, ratings, and review activity
 export default function ClientProfileModal({ show, onHide, clientId }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);

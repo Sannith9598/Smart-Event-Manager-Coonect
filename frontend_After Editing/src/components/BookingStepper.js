@@ -7,6 +7,7 @@ const steps = [
   { label: "Confirm", icon: "✅" },
 ];
 
+// Renders the multi-step progress indicator for the booking flow
 export default function BookingStepper({ currentStep = 0 }) {
   return (
     <div className="booking-stepper">

@@ -6,7 +6,7 @@ const { Event, User, EventManager, Booking } = require("../models");
 const { askGemini } = require("../utils/gemini");
 const rateLimit = require("express-rate-limit");
 
-// Sanitize user input to prevent prompt injection
+// Strips common prompt injection patterns from user input before sending to AI
 const sanitizeForPrompt = (input) => {
   // Step 0: Return empty string for empty/whitespace-only input
   if (!input || !input.trim()) return "";
@@ -21,7 +21,7 @@ const sanitizeForPrompt = (input) => {
   return filtered.slice(0, 1500);
 };
 
-// Validate and trim conversation history
+// Validates and trims conversation history to the last 20 messages
 const validateConversationHistory = (history) => {
   if (!Array.isArray(history) || history.length === 0) return [];
   const valid = history.filter(
@@ -45,6 +45,7 @@ const chatLimiter = rateLimit({
 
 // ─── Query Parsing Helpers ───────────────────────────────────────────────────
 
+// Extracts structured filters (location, price, rating, etc.) from natural language queries
 function parseUserQuery(message) {
   const lower = message.toLowerCase();
 
@@ -133,6 +134,7 @@ function parseUserQuery(message) {
 
 // ─── Response Formatters ─────────────────────────────────────────────────────
 
+// Formats a single event result into a readable text block with all relevant details
 function formatEventResult(event, manager, user, index) {
   const services = Array.isArray(manager.businessTypes) ? manager.businessTypes.join(", ") : event.category || "Event Planning";
   const areas = Array.isArray(manager.serviceAreas) ? manager.serviceAreas.join(", ") : manager.location || "N/A";
@@ -182,6 +184,7 @@ function formatEventResult(event, manager, user, index) {
   return result;
 }
 
+// Fallback formatter when AI response is unavailable — just lists the raw results
 function formatFallbackResponse(results, query) {
   if (results.length === 0) {
     return `No events found for your search 😔\n\n💡 Try:\n• "event planners in [city]"\n• "wedding planners under 50000"\n• "birthday party for 50 guests"\n• "show all planners"`;
@@ -196,6 +199,7 @@ function formatFallbackResponse(results, query) {
 
 // ─── Quick Suggestions Generator ─────────────────────────────────────────────
 
+// Generates dynamic search suggestions based on what's popular on the platform right now
 async function getQuickSuggestions() {
   try {
     // Get popular categories from available events
@@ -268,6 +272,7 @@ async function getQuickSuggestions() {
 
 // ─── Main Chat Endpoint ──────────────────────────────────────────────────────
 
+// POST /chat — Main chatbot endpoint that parses queries, searches events, and returns AI-enhanced responses
 router.post("/chat", chatLimiter, async (req, res) => {
   try {
     const { message, history } = req.body;
@@ -564,6 +569,7 @@ router.post("/chat", chatLimiter, async (req, res) => {
 
 // ─── Follow-Up Suggestions Builder ───────────────────────────────────────────
 
+// Builds contextual follow-up tips based on what filters the user hasn't used yet
 function buildFollowUpSuggestions(query, resultCount) {
   const tips = [];
 
@@ -597,6 +603,7 @@ function buildFollowUpSuggestions(query, resultCount) {
   return `💡 Refine your search:\n${selected.join("\n")}`;
 }
 
+// Returns clickable suggestion strings for the frontend based on current query context
 function getClickableSuggestions(query) {
   const suggestions = [];
 
@@ -621,6 +628,7 @@ function getClickableSuggestions(query) {
 
 // ─── AI Prompt Builder ───────────────────────────────────────────────────────
 
+// Constructs the system prompt for Gemini based on intent type and conversation history
 function buildAIPrompt(userMessage, data, type, conversationHistory = []) {
   const historySection = conversationHistory.length > 0
     ? `\nCONVERSATION HISTORY:\n${conversationHistory.map(m => `${m.role}: ${m.content}`).join('\n')}\n`
@@ -747,6 +755,7 @@ Response:`;
 
 // ─── Recommendations Engine ──────────────────────────────────────────────────
 
+// Finds alternative events when no exact match exists (relaxed price, similar types, same location)
 async function getRecommendations(query) {
   const recs = [];
   const { eventType, maxPrice, location } = query;

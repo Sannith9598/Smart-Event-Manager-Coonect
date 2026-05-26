@@ -1,3 +1,5 @@
+// Extended profile for users with the "manager" role.
+// Stores business info, verification status, portfolio, and past events.
 module.exports = (sequelize, DataTypes) => {
   const EventManager = sequelize.define("EventManager", {
     userId: {

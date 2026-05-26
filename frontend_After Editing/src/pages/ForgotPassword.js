@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaHome, FaKey, FaShieldAlt, FaCheckCircle } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Multi-step password reset page with email verification and OTP
 export default function ForgotPassword() {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
@@ -51,6 +52,7 @@ export default function ForgotPassword() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Sends the OTP to the user's email to start the reset flow
   const sendResetOTP = async () => {
     if (!validateEmail()) return;
     setLoading(true);
@@ -73,6 +75,7 @@ export default function ForgotPassword() {
     }
   };
 
+  // Submits the OTP and new password to complete the reset
   const resetPassword = async () => {
     if (!validateReset()) return;
     setLoading(true);
@@ -90,6 +93,7 @@ export default function ForgotPassword() {
     }
   };
 
+  // Resends the OTP if the timer has expired
   const resendOTP = async () => {
     if (resendTimer > 0) return;
     setLoading(true);

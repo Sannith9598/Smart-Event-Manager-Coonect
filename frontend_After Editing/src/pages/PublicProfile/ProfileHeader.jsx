@@ -1,6 +1,7 @@
 import { Badge } from "react-bootstrap";
 import { FaStar, FaMapMarkerAlt, FaClock, FaCheckCircle, FaExternalLinkAlt } from "react-icons/fa";
 
+// Displays the manager's profile banner with photo, rating, experience, and service areas
 export default function ProfileHeader({ profile }) {
   if (!profile) return null;
 

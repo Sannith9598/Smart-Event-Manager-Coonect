@@ -1,3 +1,5 @@
+// Stores one-time passwords for email verification and password resets.
+// OTPs expire after a set time and are marked as used once consumed.
 module.exports = (sequelize, DataTypes) => {
   const Otp = sequelize.define("Otp", {
     id: {

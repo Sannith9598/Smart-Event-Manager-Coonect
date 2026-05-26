@@ -15,6 +15,7 @@ const {
 } = require("../config/cloudinary");
 
 
+// POST /upload — Uploads an event image to Cloudinary and returns the URL
 router.post("/upload", auth, uploadEventImage, async (req, res) => {
   try {
     if (!req.file) {
@@ -44,6 +45,7 @@ router.post("/upload", auth, uploadEventImage, async (req, res) => {
 });
 
 
+// POST / — Creates a new EventManager profile (one per manager account)
 router.post("/", auth, async (req, res) => {
   try {
     // Role check - only managers can create EventManager profiles
@@ -72,6 +74,7 @@ router.post("/", auth, async (req, res) => {
 });
 
 
+// GET / — Returns all manager profiles with optional location, price, and search filters
 router.get("/", async (req, res) => {
   try {
     const { location, price, search } = req.query;
@@ -136,7 +139,7 @@ router.get("/", async (req, res) => {
 });
 
 
-// Search verified managers by name, business name, event type, phone, location
+// GET /search/verified — Searches verified managers by name, business type, location, or phone
 router.get("/search/verified", async (req, res) => {
   try {
     const { q } = req.query;
@@ -233,7 +236,7 @@ router.get("/search/verified", async (req, res) => {
 });
 
 
-// Check Cloudinary usage (must be before /:id route) - Admin only
+// GET /cloudinary-usage — Returns Cloudinary storage/bandwidth usage stats (admin only)
 router.get("/cloudinary-usage", auth, async (req, res) => {
   try {
     // Only admins can check Cloudinary usage
@@ -277,6 +280,7 @@ router.get("/cloudinary-usage", auth, async (req, res) => {
 });
 
 
+// GET /:id — Returns a single manager profile by ID
 router.get("/:id", async (req, res) => {
   try {
     const manager = await EventManager.findByPk(req.params.id);
@@ -294,7 +298,7 @@ router.get("/:id", async (req, res) => {
 });
 
 
-// Delete image from Cloudinary — with ownership verification
+// DELETE /delete-image — Deletes a Cloudinary image after verifying the user owns it
 router.delete("/delete-image", auth, async (req, res) => {
   try {
     const { publicId } = req.body;
@@ -350,7 +354,7 @@ router.delete("/delete-image", auth, async (req, res) => {
 });
 
 
-// Task 4.1: Public profile endpoint (unauthenticated)
+// GET /public-profile/:managerId — Returns a verified manager's public-facing profile with aggregated reviews
 router.get("/public-profile/:managerId", async (req, res) => {
   try {
     const { managerId } = req.params;
@@ -405,7 +409,7 @@ router.get("/public-profile/:managerId", async (req, res) => {
 });
 
 
-// Task 4.2: Paginated past events for public profile (unauthenticated)
+// GET /public-profile/:managerId/events — Returns paginated past events for a manager's public profile
 router.get("/public-profile/:managerId/events", async (req, res) => {
   try {
     const { managerId } = req.params;
@@ -452,7 +456,7 @@ router.get("/public-profile/:managerId/events", async (req, res) => {
 });
 
 
-// Task 4.3: Upload media for verified managers
+// POST /upload-media — Uploads images or videos for verified managers (max 5MB images, 50MB videos)
 router.post("/upload-media", auth, uploadMediaFile, async (req, res) => {
   try {
     const manager = await db.EventManager.findOne({ where: { userId: req.user.id } });
@@ -510,7 +514,7 @@ router.post("/upload-media", auth, uploadMediaFile, async (req, res) => {
 });
 
 
-// Task 4.3: Add past event (verified managers only)
+// POST /past-events — Adds a new past event to the manager's portfolio
 router.post("/past-events", auth, async (req, res) => {
   try {
     const manager = await db.EventManager.findOne({ where: { userId: req.user.id } });
@@ -569,7 +573,7 @@ router.post("/past-events", auth, async (req, res) => {
 });
 
 
-// Task 4.3: Update past event (verified managers only)
+// PUT /past-events/:eventIndex — Updates an existing past event in the manager's portfolio
 router.put("/past-events/:eventIndex", auth, async (req, res) => {
   try {
     const manager = await db.EventManager.findOne({ where: { userId: req.user.id } });
@@ -628,8 +632,7 @@ router.put("/past-events/:eventIndex", auth, async (req, res) => {
 });
 
 
-// Task 4.3: Delete past event (verified managers only)
-// Uses unique event identifier (addedAt timestamp) instead of array index to prevent race conditions
+// DELETE /past-events/:eventIndex — Removes a past event and cleans up its Cloudinary media
 router.delete("/past-events/:eventIndex", auth, async (req, res) => {
   try {
     const manager = await db.EventManager.findOne({ where: { userId: req.user.id } });
@@ -690,7 +693,7 @@ router.delete("/past-events/:eventIndex", auth, async (req, res) => {
 });
 
 
-// Compare multiple managers (max 5)
+// POST /compare — Compares up to 5 managers side-by-side with weighted scoring
 router.post("/compare", async (req, res) => {
   try {
     const { managerIds } = req.body;

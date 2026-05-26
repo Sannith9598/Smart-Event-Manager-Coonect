@@ -4,6 +4,7 @@ import { FaPlus, FaEdit, FaTrash, FaPlay, FaCalendarAlt, FaImage } from "react-i
 import API from "../../services/api";
 import AddPastEventForm from "./AddPastEventForm";
 
+// Portfolio tab for managing past events with photos, videos, and descriptions
 export default function PastEventsTab({ showToast }) {
   const [pastEvents, setPastEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +32,7 @@ export default function PastEventsTab({ showToast }) {
     }
   };
 
+  // Deletes a past event from the portfolio after confirmation
   const handleDelete = async (index) => {
     if (!window.confirm("Are you sure you want to delete this past event? This action cannot be undone.")) {
       return;

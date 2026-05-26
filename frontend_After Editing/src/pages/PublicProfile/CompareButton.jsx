@@ -1,6 +1,7 @@
 import { FaBalanceScale, FaCheck } from "react-icons/fa";
 import { toast } from "react-toastify";
 
+// Button that adds a manager to the comparison list (max 5)
 export default function CompareButton({ profile, compareList, onCompare }) {
   if (!profile) return null;
 

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-// Shows availability status dot on manager cards
+// Renders a colored dot + label showing how booked a manager is (Available / Busy / Fully Booked)
 export default function AvailabilityBadge({ bookingsCount = 0, maxCapacity = 10 }) {
   const ratio = bookingsCount / maxCapacity;
   

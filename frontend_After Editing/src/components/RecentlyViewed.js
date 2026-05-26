@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const MAX_ITEMS = 8;
 const STORAGE_KEY = "recentlyViewed";
 
-// Utility to add an item to recently viewed
+// Saves a manager or event to the recently viewed list in localStorage
 export function addToRecentlyViewed(item) {
   try {
     const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -17,6 +17,7 @@ export function addToRecentlyViewed(item) {
   }
 }
 
+// Renders a horizontal strip of recently viewed managers/events pulled from localStorage
 export default function RecentlyViewed() {
   const [items, setItems] = useState([]);
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default function RecentlyViewed() {
 
   if (items.length === 0) return null;
 
+  // Navigates to the manager profile or event detail page when a recently viewed item is clicked
   const handleClick = (item) => {
     if (item.type === "manager") {
       navigate(`/manager/${item.id}/profile`);
@@ -40,6 +42,7 @@ export default function RecentlyViewed() {
     }
   };
 
+  // Clears the recently viewed history from localStorage
   const handleClear = () => {
     localStorage.removeItem(STORAGE_KEY);
     setItems([]);

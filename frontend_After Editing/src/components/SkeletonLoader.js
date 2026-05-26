@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-// Reusable skeleton components for loading states
+// Renders placeholder shimmer cards while content is loading
 export function SkeletonCard({ count = 1 }) {
   return (
     <div className="d-flex gap-3 flex-wrap">
@@ -18,6 +18,7 @@ export function SkeletonCard({ count = 1 }) {
   );
 }
 
+// Renders a grid of skeleton event cards with staggered fade-in animation
 export function SkeletonEventCard({ count = 3 }) {
   return (
     <div className="skeleton-event-grid">
@@ -42,6 +43,7 @@ export function SkeletonEventCard({ count = 3 }) {
   );
 }
 
+// Renders circular avatar placeholders for the manager bubble carousel
 export function SkeletonManagerBubble({ count = 6 }) {
   return (
     <div className="d-flex gap-3 overflow-hidden py-2">
@@ -55,6 +57,7 @@ export function SkeletonManagerBubble({ count = 6 }) {
   );
 }
 
+// Renders a skeleton placeholder for profile pages (header banner + avatar + text lines)
 export function SkeletonProfile() {
   return (
     <div className="skeleton-profile">
@@ -68,6 +71,7 @@ export function SkeletonProfile() {
   );
 }
 
+// Renders skeleton rows mimicking a data table while the real data loads
 export function SkeletonTable({ rows = 5 }) {
   return (
     <div className="skeleton-table">

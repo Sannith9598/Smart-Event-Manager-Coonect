@@ -8,6 +8,7 @@ const API = axios.create({
 let isRefreshing = false;
 let failedQueue = [];
 
+// Resolves or rejects all queued requests once the token refresh completes
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
@@ -19,6 +20,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+// Attaches the JWT token to every outgoing request if one exists in localStorage
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
 
@@ -29,6 +31,7 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
+// Intercepts 401 responses and attempts a silent token refresh before retrying the original request
 API.interceptors.response.use(
   (response) => response,
   async (error) => {

@@ -26,6 +26,7 @@ const businessTypes = [
   "Graduation Party Planner"
 ];
 
+// Step 1 of verification — collects business name, types, service areas, and experience
 export default function Step1BusinessInfo({ formData, setFormData, validationErrors, setValidationErrors }) {
   const [selectedState, setSelectedState] = useState("");
   const [customAreaInput, setCustomAreaInput] = useState("");

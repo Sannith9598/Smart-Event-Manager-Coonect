@@ -17,6 +17,7 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || (process.env.JWT_SE
 
 // ─── Account Lockout (Database-backed) ───────────────────────────────────────
 
+// Checks if the account is locked due to too many failed login attempts
 const checkAccountLockout = async (email) => {
   const record = await LoginAttempt.findOne({ where: { email } });
   if (!record) return { locked: false };
@@ -36,6 +37,7 @@ const checkAccountLockout = async (email) => {
   return { locked: false };
 };
 
+// Increments the failed login counter; locks the account after 5 consecutive failures
 const recordFailedAttempt = async (email) => {
   let record = await LoginAttempt.findOne({ where: { email } });
 
@@ -52,12 +54,14 @@ const recordFailedAttempt = async (email) => {
   return record.attempts;
 };
 
+// Clears failed login records after a successful login
 const resetAttempts = async (email) => {
   await LoginAttempt.destroy({ where: { email } });
 };
 
 // ─── Rate Limiters ───────────────────────────────────────────────────────────
 
+// Limits login attempts to 10 per 15 minutes per IP to prevent brute force
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -66,6 +70,7 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Limits OTP requests to 5 per 10 minutes per IP to avoid spam
 const otpLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 5,
@@ -79,10 +84,12 @@ const FROM_EMAIL = process.env.FROM_EMAIL || "mailserviceforproject@gmail.com";
 
 // ─── OTP Helpers (Database-backed) ──────────────────────────────────────────
 
+// Generates a random 6-digit numeric OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// Saves OTP to the database, replacing any existing one for the same email+purpose
 const storeOtp = async (email, otp, purpose) => {
   // Delete any existing OTPs for this email+purpose
   await Otp.destroy({ where: { email, purpose } });
@@ -97,6 +104,7 @@ const storeOtp = async (email, otp, purpose) => {
   });
 };
 
+// Validates OTP against the database — checks expiry and marks it as used if valid
 const verifyOtp = async (email, otp, purpose) => {
   const record = await Otp.findOne({
     where: {
@@ -127,6 +135,7 @@ const verifyOtp = async (email, otp, purpose) => {
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
+// POST /send-otp — Sends a 6-digit OTP to the user's email for registration verification
 router.post("/send-otp", otpLimiter, async (req, res) => {
   try {
     const { email, name, mobile } = req.body;
@@ -182,6 +191,7 @@ router.post("/send-otp", otpLimiter, async (req, res) => {
 });
 
 
+// POST /verify-otp-and-register — Verifies the OTP then creates the user account with a hashed password
 router.post("/verify-otp-and-register", async (req, res) => {
   try {
     const { name, email, mobile, password, role, otp } = req.body;
@@ -267,6 +277,7 @@ router.post("/verify-otp-and-register", async (req, res) => {
   }
 });
 
+// POST /login — Authenticates user credentials, handles lockout logic, returns JWT access + refresh tokens
 router.post("/login", loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -348,7 +359,7 @@ router.post("/login", loginLimiter, async (req, res) => {
   }
 });
 
-// Refresh token endpoint
+// POST /refresh-token — Issues a new access token using a valid refresh token
 router.post("/refresh-token", async (req, res) => {
   try {
     const { refreshToken } = req.body;
@@ -398,7 +409,7 @@ router.post("/refresh-token", async (req, res) => {
 });
 
 
-// Get current user profile
+// GET /me — Returns the currently authenticated user's profile
 router.get("/me", require("../middleware/auth"), async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id);
@@ -411,7 +422,7 @@ router.get("/me", require("../middleware/auth"), async (req, res) => {
   }
 });
 
-// Forgot password - send OTP
+// POST /forgot-password — Sends a password reset OTP (doesn't reveal whether the email exists)
 router.post("/forgot-password", otpLimiter, async (req, res) => {
   try {
     const { email } = req.body;
@@ -455,7 +466,7 @@ router.post("/forgot-password", otpLimiter, async (req, res) => {
   }
 });
 
-// Reset password with OTP
+// POST /reset-password — Verifies the reset OTP and updates the user's password
 router.post("/reset-password", async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body;

@@ -1,3 +1,5 @@
+// In-app notifications for users (booking updates, verification results, etc.).
+// Supports read/unread state and optional deep links.
 module.exports = (sequelize, DataTypes) => {
   const Notification = sequelize.define("Notification", {
     id: {

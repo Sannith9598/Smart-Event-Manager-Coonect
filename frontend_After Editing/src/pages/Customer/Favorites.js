@@ -9,6 +9,7 @@ import AppNavbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { useTheme } from "../../context/ThemeContext";
 
+// Displays the customer's saved/favorited events with remove and book actions
 export default function Favorites() {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +20,7 @@ export default function Favorites() {
     fetchFavorites();
   }, []);
 
+  // Loads the user's saved events from the API
   const fetchFavorites = async () => {
     try {
       setLoading(true);
@@ -32,6 +34,7 @@ export default function Favorites() {
     }
   };
 
+  // Removes an event from the user's favorites list
   const removeFavorite = async (eventId) => {
     try {
       await API.delete(`/favorites/${eventId}`);

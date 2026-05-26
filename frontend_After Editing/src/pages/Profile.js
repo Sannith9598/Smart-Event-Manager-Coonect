@@ -32,6 +32,7 @@ import AppNavbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import API from "../services/api";
 
+// User profile page with personal info editing, password change, and business profile for managers
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -67,6 +68,7 @@ export default function Profile() {
     fetchProfile();
   }, []);
 
+  // Loads the user's profile data from the API
   const fetchProfile = async () => {
     try {
       const res = await API.get("/profile");
@@ -92,6 +94,7 @@ export default function Profile() {
     }
   };
 
+  // Uploads a new profile photo to the server
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -123,6 +126,7 @@ export default function Profile() {
     }
   };
 
+  // Removes the user's profile photo
   const handleRemovePhoto = async () => {
     setUploadingPhoto(true);
     try {
@@ -178,6 +182,7 @@ export default function Profile() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Saves updated name and mobile number
   const handleProfileUpdate = async () => {
     if (!validateProfile()) return;
     setSaving(true);
@@ -196,6 +201,7 @@ export default function Profile() {
     }
   };
 
+  // Submits the password change request after validation
   const handlePasswordChange = async () => {
     if (!validatePassword()) return;
     setChangingPassword(true);
@@ -214,6 +220,7 @@ export default function Profile() {
     }
   };
 
+  // Saves the manager's business profile (location, description, service areas)
   const handleManagerProfileUpdate = async () => {
     setSaving(true);
     try {
